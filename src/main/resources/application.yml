@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: spring-boot-first
+
+  profiles:
+    active: dev
+
+jwt:
+  secret: ${JWT_SECRET}
+  refreshExpiration: ${REFRESH_JWT_EXPIRATION}
+  accessExpiration: ${ACCESS_JWT_EXPIRATION}
