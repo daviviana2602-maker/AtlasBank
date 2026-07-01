@@ -1,4 +1,17 @@
 package org.atlas.common.security;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+
+
 public class JwtDataFormat {
+
+    private String userId;
+    private String role;
+
 }
