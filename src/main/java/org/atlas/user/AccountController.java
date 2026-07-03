@@ -1,4 +1,4 @@
-package org.atlas.User;
+package org.atlas.user;
 
 
 public class AccountController {

@@ -10,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
-        System.out.println("Spring Boot Application Started");
+        System.out.println("Atlas Bank is Open");
     }
 
 }

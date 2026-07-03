@@ -1,6 +1,5 @@
-package org.atlas.common.security;
+package org.atlas.security;
 
-import org.apache.catalina.filters.RateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;

@@ -1,11 +1,12 @@
-package org.atlas.User;
+package org.atlas.user;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.atlas.common.enums.UserStatusEnum;
+import org.atlas.user.enums.UserRoleEnum;
+import org.atlas.user.enums.UserStatusEnum;
 
 import java.time.OffsetDateTime;
 
@@ -38,7 +39,7 @@ public class UserEntity {
     private String cpf;
 
     @Column
-    private String role;
+    private UserRoleEnum role;
 
     @Column
     @Enumerated(EnumType.STRING)

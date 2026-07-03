@@ -1,4 +1,4 @@
-package org.atlas.common.enums;
+package org.atlas.user.enums;
 
 public enum UserRoleEnum {
 

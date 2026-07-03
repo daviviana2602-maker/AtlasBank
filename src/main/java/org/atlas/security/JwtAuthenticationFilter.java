@@ -1,13 +1,13 @@
-package org.atlas.common.security;
+package org.atlas.security;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.atlas.User.UserEntity;
-import org.atlas.User.UserRepository;
-import org.atlas.common.enums.UserStatusEnum;
+import org.atlas.user.UserEntity;
+import org.atlas.user.UserRepository;
+import org.atlas.user.enums.UserStatusEnum;
 import org.atlas.common.exception.NotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

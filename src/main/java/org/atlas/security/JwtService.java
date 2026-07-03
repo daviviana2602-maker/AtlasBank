@@ -1,9 +1,9 @@
-package org.atlas.common.security;
+package org.atlas.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.atlas.common.enums.UserRoleEnum;
+import org.atlas.user.enums.UserRoleEnum;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

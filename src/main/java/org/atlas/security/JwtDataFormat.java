@@ -1,4 +1,4 @@
-package org.atlas.common.security;
+package org.atlas.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
