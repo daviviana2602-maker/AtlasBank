@@ -9,10 +9,8 @@ import org.atlas.auth.dto.response.CreateAccountResponse;
 import org.atlas.auth.dto.response.LoginResponse;
 import org.atlas.auth.service.CreateAccountService;
 import org.atlas.auth.service.LoginService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.atlas.auth.service.TokenService;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -23,6 +21,7 @@ public class AuthController {
 
     private final LoginService loginService;
     private final CreateAccountService createAccountService;
+    private final TokenService tokenService;
 
 
     @PostMapping("/login")
@@ -54,5 +53,12 @@ public class AuthController {
     }
 
 
+    @PostMapping("/{refreshToken}")
+    public String token(
+            @PathVariable String refreshToken
+    )
+    {
+        return tokenService.refreshAccessToken(refreshToken);
+    }
 
 }
