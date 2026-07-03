@@ -10,7 +10,10 @@ import org.atlas.auth.dto.response.LoginResponse;
 import org.atlas.auth.service.CreateAccountService;
 import org.atlas.auth.service.LoginService;
 import org.atlas.auth.service.TokenService;
+import org.atlas.email.VerifyEmailService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -22,6 +25,7 @@ public class AuthController {
     private final LoginService loginService;
     private final CreateAccountService createAccountService;
     private final TokenService tokenService;
+    private final VerifyEmailService verifyEmailService;
 
 
     @PostMapping("/login")
@@ -51,6 +55,17 @@ public class AuthController {
                 createAccountRequest.getCpf()
         );
     }
+
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(
+            @RequestParam String token
+    ) {
+        verifyEmailService.verify(token);
+
+        return ResponseEntity.ok("Email verified");
+    }
+
 
 
     @PostMapping("/{refreshToken}")

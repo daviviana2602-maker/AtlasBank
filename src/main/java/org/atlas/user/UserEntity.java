@@ -9,6 +9,7 @@ import org.atlas.user.enums.UserRoleEnum;
 import org.atlas.user.enums.UserStatusEnum;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 
@@ -46,10 +47,19 @@ public class UserEntity {
     @Column
     @Enumerated(EnumType.STRING)
     private UserStatusEnum status;
-    
+
+    @Column(nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column
+    private String emailVerificationToken;
+
+    @Column
+    private LocalDateTime emailVerificationExpiresIn;
+
     @Column
     @CreationTimestamp
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
 
 }

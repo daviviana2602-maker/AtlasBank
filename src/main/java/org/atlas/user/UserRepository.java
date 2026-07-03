@@ -12,4 +12,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     boolean existsByCpf(String cpf);
 
+    Optional<UserEntity> findByEmailVerificationToken(String token);
+
 }

@@ -14,3 +14,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  resend:
+    api:
+      key: ${RESEND_API_KEY}

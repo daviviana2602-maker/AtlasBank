@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.atlas.user.enums.UserRoleEnum;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 
 @Getter
@@ -23,6 +23,6 @@ public class CreateAccountResponse {
 
     private UserRoleEnum role;
 
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
 }

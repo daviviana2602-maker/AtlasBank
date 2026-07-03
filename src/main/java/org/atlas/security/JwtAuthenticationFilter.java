@@ -62,6 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             UserEntity user = getCurrentUser(userId);
 
+            
 
             if (user.getStatus() == UserStatusEnum.DISABLED) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);

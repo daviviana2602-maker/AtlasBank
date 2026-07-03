@@ -48,6 +48,9 @@ public class LoginService {
 
         UserEntity user = findUserByEmail(email);
 
+        if (user.getEmailVerified() == false){
+            throw new ForbiddenException("Verify your email");
+        }
 
         if (user.getStatus().equals(UserStatusEnum.DISABLED)) {
             throw new ForbiddenException("User is disabled");

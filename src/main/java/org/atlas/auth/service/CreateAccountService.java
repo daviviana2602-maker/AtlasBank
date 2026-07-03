@@ -3,6 +3,8 @@ package org.atlas.auth.service;
 import org.atlas.auth.dto.response.CreateAccountResponse;
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.ConflictException;
+import org.atlas.email.EmailService;
+import org.atlas.security.JwtService;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserRoleEnum;
@@ -10,6 +12,9 @@ import org.atlas.user.enums.UserStatusEnum;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.atlas.common.normalize.StringNormalize.*;
 
@@ -20,13 +25,17 @@ public class CreateAccountService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
 
     public CreateAccountService(UserRepository userRepository,
-                                PasswordEncoder passwordEncoder)
+                                PasswordEncoder passwordEncoder,
+                                EmailService emailService
+    )
     {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
 
@@ -83,6 +92,15 @@ public class CreateAccountService {
         String passwordHash = passwordEncoder.encode(password);
 
         user.setPassword(passwordHash);
+
+
+        String token = UUID.randomUUID().toString();
+
+        user.setEmailVerified(false);
+        user.setEmailVerificationToken(token);
+        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(10));
+
+        emailService.sendVerificationEmail(email, token);
 
 
         userRepository.saveAndFlush(user);
