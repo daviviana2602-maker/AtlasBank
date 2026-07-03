@@ -3,8 +3,11 @@ package org.atlas.auth;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.atlas.auth.dto.request.CreateAccountRequest;
 import org.atlas.auth.dto.request.LoginRequest;
+import org.atlas.auth.dto.response.CreateAccountResponse;
 import org.atlas.auth.dto.response.LoginResponse;
+import org.atlas.auth.service.CreateAccountService;
 import org.atlas.auth.service.LoginService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final LoginService loginService;
+    private final CreateAccountService createAccountService;
 
 
     @PostMapping("/login")
@@ -33,6 +37,21 @@ public class AuthController {
         );
     }
 
+
+    @PostMapping("/create")
+    public CreateAccountResponse createUser(
+            @Valid @RequestBody CreateAccountRequest createAccountRequest
+    )
+    {
+        return createAccountService.createAccount(
+
+                createAccountRequest.getName(),
+                createAccountRequest.getEmail(),
+                createAccountRequest.getPassword(),
+                createAccountRequest.getPasswordConfirm(),
+                createAccountRequest.getCpf()
+        );
+    }
 
 
 

@@ -12,4 +12,8 @@ public class StringNormalize {
         return email.trim().toLowerCase();
     }
 
+    public static String normalizeCpf(String cpf) {
+        return cpf.trim().replaceAll("[^0-9]", "");
+    }
+
 }

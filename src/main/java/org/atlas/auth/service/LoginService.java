@@ -11,6 +11,7 @@ import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserStatusEnum;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.atlas.common.normalize.StringNormalize.normalizeEmail;
 
@@ -39,6 +40,7 @@ public class LoginService {
     }
 
 
+    @Transactional
     public LoginResponse systemLogin(String email, String password){
 
         email = normalizeEmail(email);
