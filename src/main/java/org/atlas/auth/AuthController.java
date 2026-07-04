@@ -3,6 +3,7 @@ package org.atlas.auth;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.atlas.account.service.ListBalanceService;
 import org.atlas.auth.dto.request.CreateAccountRequest;
 import org.atlas.auth.dto.request.LoginRequest;
 import org.atlas.auth.dto.response.CreateAccountResponse;
@@ -67,7 +68,6 @@ public class AuthController {
     }
 
 
-
     @PostMapping("/{refreshToken}")
     public String token(
             @PathVariable String refreshToken
@@ -75,5 +75,6 @@ public class AuthController {
     {
         return tokenService.refreshAccessToken(refreshToken);
     }
+
 
 }
