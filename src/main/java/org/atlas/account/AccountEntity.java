@@ -3,9 +3,11 @@ package org.atlas.account;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.atlas.transaction.LedgerEntity;
 import org.atlas.user.UserEntity;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +25,10 @@ public class AccountEntity {
     @OneToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
+
+
+    @OneToMany(mappedBy = "account")
+    private List<LedgerEntity> ledgers;
 
 
     @Id
