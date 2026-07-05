@@ -46,7 +46,7 @@ public class AdminSeeder implements CommandLineRunner {
 
 
         AccountEntity accountAtlas = AccountEntity.builder()
-                        .userId(1L)
+                        .user(atlasAdmin)
                         .balance(BigDecimal.ZERO)
                         .build();
 

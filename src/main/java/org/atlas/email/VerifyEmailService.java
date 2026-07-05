@@ -53,7 +53,7 @@ public class VerifyEmailService {
 
         AccountEntity account = new AccountEntity();
 
-        account.setUserId(user.getId());
+        account.setUser(user);
         account.setBalance(BigDecimal.ZERO);
 
 

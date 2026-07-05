@@ -1,8 +1,10 @@
 package org.atlas.security;
 
-import org.atlas.common.exception.ForbiddenException;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
@@ -26,7 +28,9 @@ public class OwnershipService {
                 .getPrincipal();
 
         if (!authenticatedUserId.equals(resourceOwnerId)) {
-            throw new ForbiddenException("You are not allowed to access this resource");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN
+            );
         }
 
     }

@@ -3,6 +3,7 @@ package org.atlas.account;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.atlas.user.UserEntity;
 
 import java.math.BigDecimal;
 
@@ -19,12 +20,14 @@ import java.math.BigDecimal;
 
 public class AccountEntity {
 
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column
-    private Long userId;
 
     @Column(unique = true)
     private BigDecimal balance = BigDecimal.ZERO;

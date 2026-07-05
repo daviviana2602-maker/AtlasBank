@@ -6,7 +6,6 @@ import org.atlas.account.AccountRepository;
 import org.atlas.common.exception.NotFoundException;
 import org.atlas.security.OwnershipService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
