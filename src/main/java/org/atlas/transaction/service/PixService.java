@@ -55,11 +55,6 @@ public class PixService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
-    private AccountEntity findAccountById(Long accountId) {
-            return accountRepository.findById(accountId)
-                    .orElseThrow(() -> new NotFoundException("Account not found"));
-    }
-
 
     private UserEntity findUserByEmail(String email) {
         return userRepository.findByEmail(email)
@@ -70,6 +65,114 @@ public class PixService {
     private UserEntity findUserByCpf(String cpf) {
         return userRepository.findByCpf(cpf)
                 .orElseThrow(() -> new NotFoundException("User with cpf: " + cpf + " not found"));
+    }
+
+
+    private AccountEntity getUser(){
+
+        Long userId = (Long) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        UserEntity sendingUser = findUserById(userId);
+
+        return sendingUser.getAccount();
+
+    }
+
+
+    private AccountEntity getAccount(String toCpf, String toEmail, AccountEntity senderAccount){
+
+        AccountEntity receiverAccount;
+        UserEntity userByCpf;
+        UserEntity userByEmail;
+
+
+        if (toCpf != null && !toCpf.isBlank()){
+
+            toCpf = normalizeCpf(toCpf);
+
+            userByCpf = findUserByCpf(toCpf);
+
+            if (toCpf.equals(senderAccount.getUser().getCpf())) {
+                throw new BadRequestException("You cannot send pix to yourself");
+            }
+
+            receiverAccount = userByCpf.getAccount();
+
+        }
+
+
+        else {
+
+            toEmail = normalizeEmail(toEmail);
+
+            userByEmail = findUserByEmail(toEmail);
+
+            if (toEmail.equals(senderAccount.getUser().getEmail())) {
+                throw new BadRequestException("You cannot send pix to yourself");
+            }
+
+            receiverAccount = userByEmail.getAccount();
+
+        }
+
+        return receiverAccount;
+
+    }
+
+
+    private PixEntity createPix(AccountEntity senderAccount, AccountEntity receiverAccount, BigDecimal amount, String description) {
+
+        PixEntity currentPix = new PixEntity();
+
+        currentPix.setSender(senderAccount);
+        currentPix.setReceiver(receiverAccount);
+        currentPix.setAmount(amount);
+        currentPix.setDescription(description);
+        currentPix.setStatus(PixStatusEnum.SUCCESS);
+
+
+        pixRepository.save(currentPix);
+        return currentPix;
+
+    }
+
+
+    private void createSenderLedger(AccountEntity senderAccount, BigDecimal amount, PixEntity currentPix) {
+
+        BigDecimal newBalance = senderAccount.getBalance().subtract(amount);
+
+        LedgerEntity transaction = new LedgerEntity();
+
+        transaction.setAccount(senderAccount);
+        transaction.setType(TransactionTypeEnum.PIX_SEND);
+        transaction.setAmount(amount);
+        transaction.setBalanceAfter(newBalance);
+        transaction.setPix(currentPix);
+
+        senderAccount.setBalance(newBalance);
+
+        ledgerRepository.save(transaction);
+
+    }
+
+
+    private void createReceiverLedger(AccountEntity receiverAccount, BigDecimal amount, PixEntity currentPix) {
+
+        BigDecimal newBalanceReceived = receiverAccount.getBalance().add(amount);
+
+        LedgerEntity receiveTransaction = new LedgerEntity();
+
+        receiveTransaction.setAccount(receiverAccount);
+        receiveTransaction.setType(TransactionTypeEnum.PIX_RECEIVE);
+        receiveTransaction.setAmount(amount);
+        receiveTransaction.setBalanceAfter(newBalanceReceived);
+        receiveTransaction.setPix(currentPix);
+
+        receiverAccount.setBalance(newBalanceReceived);
+
+        ledgerRepository.save(receiveTransaction);
+
     }
 
 
@@ -88,53 +191,14 @@ public class PixService {
         }
 
 
-        Long userId = (Long) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        UserEntity sendingUser = findUserById(userId);
-        AccountEntity senderAccount = sendingUser.getAccount();
-
+        AccountEntity senderAccount = getUser();
 
         if (!passwordEncoder.matches(password, senderAccount.getUser().getPassword())) {
             throw new BadRequestException("Wrong password");
         }
 
 
-        AccountEntity receiverAccount;
-        UserEntity userByCpf;
-        UserEntity userByEmail;
-
-
-        if (toCpf != null && !toCpf.isBlank()){
-
-            toCpf = normalizeCpf(toCpf);
-
-            userByCpf = findUserByCpf(toCpf);
-
-            if (toCpf.equals(sendingUser.getCpf())) {
-                throw new BadRequestException("You cannot send pix to yourself");
-            }
-
-            receiverAccount = findAccountById(userByCpf.getAccount().getId());
-
-        }
-
-
-        else {
-
-            toEmail = normalizeEmail(toEmail);
-
-            userByEmail = findUserByEmail(toEmail);
-
-            if (toEmail.equals(sendingUser.getEmail())) {
-                throw new BadRequestException("You cannot send pix to yourself");
-            }
-
-            receiverAccount = findAccountById(userByEmail.getAccount().getId());
-
-        }
-
-
+        AccountEntity receiverAccount = getAccount(toCpf, toEmail, senderAccount);
 
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0){
@@ -145,7 +209,6 @@ public class PixService {
         if (amount.compareTo(senderAccount.getBalance()) > 0){
             throw new BadRequestException("you do not have enough balance");
         }
-
 
 
         if (description != null) {
@@ -159,51 +222,11 @@ public class PixService {
         }
 
 
-        // Pix transaction
-        PixEntity currentPix = new PixEntity();
+        PixEntity currentPix = createPix(senderAccount, receiverAccount, amount, description);
 
-        currentPix.setSender(senderAccount);
-        currentPix.setReceiver(receiverAccount);
-        currentPix.setAmount(amount);
-        currentPix.setDescription(description);
-        currentPix.setStatus(PixStatusEnum.SUCCESS);
+        createSenderLedger(senderAccount, amount, currentPix);
 
-
-        pixRepository.save(currentPix);
-
-
-
-        // user who sends the Pix payment (ledger)
-        BigDecimal new_balance = senderAccount.getBalance().subtract(amount);
-
-        LedgerEntity transaction = new LedgerEntity();
-
-        transaction.setAccount(senderAccount);
-        transaction.setType(TransactionTypeEnum.PIX_SEND);
-        transaction.setAmount(amount);
-        transaction.setBalanceAfter(new_balance);
-        transaction.setPix(currentPix);
-
-        senderAccount.setBalance(new_balance);
-
-        ledgerRepository.save(transaction);
-
-
-
-        // user who receives the Pix payment (ledger)
-        BigDecimal new_balance_received = receiverAccount.getBalance().add(amount);
-
-        LedgerEntity receiveTransaction = new LedgerEntity();
-
-        receiveTransaction.setAccount(receiverAccount);
-        receiveTransaction.setType(TransactionTypeEnum.PIX_RECEIVE);
-        receiveTransaction.setAmount(amount);
-        receiveTransaction.setBalanceAfter(new_balance_received);
-        receiveTransaction.setPix(currentPix);
-
-        receiverAccount.setBalance(new_balance_received);
-
-        ledgerRepository.save(receiveTransaction);
+        createReceiverLedger(receiverAccount, amount, currentPix);
 
 
         return new PixResponse(
