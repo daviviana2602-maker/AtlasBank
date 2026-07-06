@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 
 @Component
 @RequiredArgsConstructor
-public class AdminSeeder implements CommandLineRunner {
+public class InitalUsersSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
@@ -34,23 +34,44 @@ public class AdminSeeder implements CommandLineRunner {
 
         UserEntity atlasAdmin = UserEntity.builder()
                 .name("AtlasAdmin")
-                .email("atlas@gmail.com")
+                .email("admin@gmail.com")
                 .password(passwordEncoder.encode("atlas"))
-                .cpf("12345678910")
+                .cpf("16899535009")
                 .role(UserRoleEnum.ADMIN)
                 .status(UserStatusEnum.ACTIVE)
                 .emailVerified(true)
                 .build();
 
+
+        UserEntity atlasUser = UserEntity.builder()
+                .name("AtlasUser")
+                .email("user@gmail.com")
+                .password(passwordEncoder.encode("atlas"))
+                .cpf("52998224725")
+                .role(UserRoleEnum.USER)
+                .status(UserStatusEnum.ACTIVE)
+                .emailVerified(true)
+                .build();
+
+
         userRepository.save(atlasAdmin);
+        userRepository.save(atlasUser);
 
 
-        AccountEntity accountAtlas = AccountEntity.builder()
+        AccountEntity accountAtlasAdmin = AccountEntity.builder()
                         .user(atlasAdmin)
-                        .balance(BigDecimal.ZERO)
+                        .balance(BigDecimal.TEN)
                         .build();
 
-        accountRepository.save(accountAtlas);
+
+        AccountEntity accountAtlasUser = AccountEntity.builder()
+                        .user(atlasUser)
+                        .balance(BigDecimal.TWO)
+                        .build();
+
+
+        accountRepository.save(accountAtlasAdmin);
+        accountRepository.save(accountAtlasUser);
 
 
     }

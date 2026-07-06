@@ -1,7 +1,6 @@
 package org.atlas.transaction;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.atlas.account.AccountEntity;
 import org.atlas.transaction.enums.TransactionTypeEnum;
@@ -33,17 +32,17 @@ public class LedgerEntity {
     private Long id;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private TransactionTypeEnum type;
 
     @Column
     private BigDecimal amount;
 
     @Column
-    @Size(min = 1, max = 100)
     private String description;
 
-    @Column
-    private BigDecimal balance_after;
+    @Column(name = "balance_after")
+    private BigDecimal balanceAfter;
 
     @Column
     @CreationTimestamp
