@@ -5,10 +5,13 @@ import org.atlas.account.AccountEntity;
 import org.atlas.account.AccountRepository;
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.NotFoundException;
-import org.atlas.transaction.LedgerEntity;
-import org.atlas.transaction.LedgerRepository;
+import org.atlas.transaction.entity.LedgerEntity;
+import org.atlas.transaction.entity.PixEntity;
+import org.atlas.transaction.enums.PixStatusEnum;
+import org.atlas.transaction.repository.LedgerRepository;
 import org.atlas.transaction.dto.response.PixResponse;
 import org.atlas.transaction.enums.TransactionTypeEnum;
+import org.atlas.transaction.repository.PixRepository;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,18 +32,21 @@ public class PixService {
     private final PasswordEncoder passwordEncoder;
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final PixRepository pixRepository;
 
 
     public PixService(LedgerRepository ledgerRepository,
                       UserRepository userRepository,
                       AccountRepository accountRepository,
-                      PasswordEncoder passwordEncoder
+                      PasswordEncoder passwordEncoder,
+                      PixRepository pixRepository
     )
     {
         this.ledgerRepository = ledgerRepository;
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
         this.passwordEncoder = passwordEncoder;
+        this.pixRepository = pixRepository;
     }
 
 
@@ -86,32 +92,48 @@ public class PixService {
                 .getAuthentication().getPrincipal();
 
         UserEntity sendingUser = findUserById(userId);
-        AccountEntity account = findAccountById(sendingUser.getAccount().getId());
+        AccountEntity senderAccount = sendingUser.getAccount();
 
 
-        if (!passwordEncoder.matches(password, account.getUser().getPassword())) {
+        if (!passwordEncoder.matches(password, senderAccount.getUser().getPassword())) {
             throw new BadRequestException("Wrong password");
         }
 
 
-        UserEntity userByEmail = null;
-        if (toEmail != null && !toEmail.isBlank()){
-
-            toEmail = normalizeEmail(toEmail);
-
-            userByEmail = findUserByEmail(toEmail);
-
-        }
+        AccountEntity receiverAccount;
+        UserEntity userByCpf;
+        UserEntity userByEmail;
 
 
-        UserEntity userByCpf = null;
         if (toCpf != null && !toCpf.isBlank()){
 
             toCpf = normalizeCpf(toCpf);
 
             userByCpf = findUserByCpf(toCpf);
 
+            if (toCpf.equals(sendingUser.getCpf())) {
+                throw new BadRequestException("You cannot send pix to yourself");
+            }
+
+            receiverAccount = findAccountById(userByCpf.getAccount().getId());
+
         }
+
+
+        else {
+
+            toEmail = normalizeEmail(toEmail);
+
+            userByEmail = findUserByEmail(toEmail);
+
+            if (toEmail.equals(sendingUser.getEmail())) {
+                throw new BadRequestException("You cannot send pix to yourself");
+            }
+
+            receiverAccount = findAccountById(userByEmail.getAccount().getId());
+
+        }
+
 
 
 
@@ -120,7 +142,7 @@ public class PixService {
         }
 
 
-        if (amount.compareTo(account.getBalance()) > 0){
+        if (amount.compareTo(senderAccount.getBalance()) > 0){
             throw new BadRequestException("you do not have enough balance");
         }
 
@@ -137,58 +159,58 @@ public class PixService {
         }
 
 
-        //user who sends the Pix payment
-        BigDecimal new_balance = account.getBalance().subtract(amount);
+        // Pix transaction
+        PixEntity currentPix = new PixEntity();
+
+        currentPix.setSender(senderAccount);
+        currentPix.setReceiver(receiverAccount);
+        currentPix.setAmount(amount);
+        currentPix.setDescription(description);
+        currentPix.setStatus(PixStatusEnum.SUCCESS);
+
+
+        pixRepository.save(currentPix);
+
+
+
+        // user who sends the Pix payment (ledger)
+        BigDecimal new_balance = senderAccount.getBalance().subtract(amount);
 
         LedgerEntity transaction = new LedgerEntity();
 
-        transaction.setAccount(account);
-        transaction.setDescription(description);
+        transaction.setAccount(senderAccount);
         transaction.setType(TransactionTypeEnum.PIX_SEND);
         transaction.setAmount(amount);
         transaction.setBalanceAfter(new_balance);
+        transaction.setPix(currentPix);
 
-
-        if (userByCpf != null) {
-            transaction.setReferenceId(userByCpf.getAccount().getId());
-        }
-
-        else  {
-            transaction.setReferenceId(userByEmail.getAccount().getId());
-        }
-
-
-        account.setBalance(new_balance);
+        senderAccount.setBalance(new_balance);
 
         ledgerRepository.save(transaction);
 
 
-        // user who receives the Pix payment
-        AccountEntity receive_account = findAccountById(transaction.getReferenceId());
 
-        BigDecimal new_balance_received = receive_account.getBalance().add(amount);
+        // user who receives the Pix payment (ledger)
+        BigDecimal new_balance_received = receiverAccount.getBalance().add(amount);
 
         LedgerEntity receiveTransaction = new LedgerEntity();
 
-        receiveTransaction.setAccount(receive_account);
-        receiveTransaction.setDescription(description);
+        receiveTransaction.setAccount(receiverAccount);
         receiveTransaction.setType(TransactionTypeEnum.PIX_RECEIVE);
         receiveTransaction.setAmount(amount);
         receiveTransaction.setBalanceAfter(new_balance_received);
-        receiveTransaction.setReferenceId(transaction.getId());
+        receiveTransaction.setPix(currentPix);
 
-        receive_account.setBalance(new_balance_received);
+        receiverAccount.setBalance(new_balance_received);
 
         ledgerRepository.save(receiveTransaction);
 
 
-
         return new PixResponse(
-                transaction.getDescription(),
-                transaction.getType(),
-                transaction.getAmount(),
-                transaction.getBalanceAfter(),
-                transaction.getCreatedAt()
+                currentPix.getDescription(),
+                currentPix.getStatus(),
+                currentPix.getAmount(),
+                currentPix.getCreatedAt()
         );
 
     }

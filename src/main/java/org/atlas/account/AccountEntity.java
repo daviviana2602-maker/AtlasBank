@@ -3,7 +3,8 @@ package org.atlas.account;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.atlas.transaction.LedgerEntity;
+import org.atlas.transaction.entity.LedgerEntity;
+import org.atlas.transaction.entity.PixEntity;
 import org.atlas.user.UserEntity;
 
 import java.math.BigDecimal;
@@ -30,6 +31,12 @@ public class AccountEntity {
     @OneToMany(mappedBy = "account")
     private List<LedgerEntity> ledgers;
 
+
+    @OneToMany(mappedBy = "sender")
+    private List<PixEntity> sentPixes;
+
+    @OneToMany(mappedBy = "receiver")
+    private List<PixEntity> receivedPixes;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 
 @Component
 @RequiredArgsConstructor
-public class InitalUsersSeeder implements CommandLineRunner {
+public class InitialUsersSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;

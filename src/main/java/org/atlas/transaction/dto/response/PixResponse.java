@@ -4,7 +4,7 @@ package org.atlas.transaction.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.atlas.transaction.enums.TransactionTypeEnum;
+import org.atlas.transaction.enums.PixStatusEnum;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,9 +17,8 @@ import java.time.LocalDateTime;
 public class PixResponse {
 
     private String description;
-    private TransactionTypeEnum type;
-    private BigDecimal amount;
-    private BigDecimal balance_after;
+    private PixStatusEnum status;
+    private BigDecimal Amount;
     private LocalDateTime createdAt;
 
 }

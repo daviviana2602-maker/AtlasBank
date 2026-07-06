@@ -1,4 +1,4 @@
-package org.atlas.transaction;
+package org.atlas.transaction.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +26,10 @@ public class LedgerEntity {
     @JoinColumn(name = "account_id")
     private AccountEntity account;
 
+    @ManyToOne
+    @JoinColumn(name = "pix_id")
+    private PixEntity pix;
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,18 +42,11 @@ public class LedgerEntity {
     @Column
     private BigDecimal amount;
 
-    @Column
-    private String description;
-
     @Column(name = "balance_after")
     private BigDecimal balanceAfter;
 
     @Column
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-    @Column(name = "reference_id")
-    private Long referenceId;
-
 
 }

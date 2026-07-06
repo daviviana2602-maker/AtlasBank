@@ -1,5 +1,6 @@
-package org.atlas.transaction;
+package org.atlas.transaction.repository;
 
+import org.atlas.transaction.entity.LedgerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
