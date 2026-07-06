@@ -30,21 +30,18 @@ public class PixService {
 
     private final LedgerRepository ledgerRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final PixRepository pixRepository;
 
 
     public PixService(LedgerRepository ledgerRepository,
                       UserRepository userRepository,
-                      AccountRepository accountRepository,
                       PasswordEncoder passwordEncoder,
                       PixRepository pixRepository
     )
     {
         this.ledgerRepository = ledgerRepository;
         this.userRepository = userRepository;
-        this.accountRepository = accountRepository;
         this.passwordEncoder = passwordEncoder;
         this.pixRepository = pixRepository;
     }
