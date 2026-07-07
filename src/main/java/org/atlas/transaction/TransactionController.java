@@ -4,8 +4,11 @@ package org.atlas.transaction;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.atlas.transaction.dto.request.DepositRequest;
 import org.atlas.transaction.dto.request.PixRequest;
+import org.atlas.transaction.dto.response.DepositResponse;
 import org.atlas.transaction.dto.response.PixResponse;
+import org.atlas.transaction.service.DepositService;
 import org.atlas.transaction.service.PixService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,9 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class TransactionController {
 
     private final PixService pixService;
+    private final DepositService depositService;
 
 
-    @PostMapping("/")
+    @PostMapping("/pix")
     @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "bearerAuth")
     public PixResponse sendPix(
@@ -38,6 +42,17 @@ public class TransactionController {
                 pixRequest.getAmount(),
                 pixRequest.getPassword()
         );
+    }
+
+
+    @PostMapping("/deposit")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
+    public DepositResponse depositAmount(
+            @Valid @RequestBody DepositRequest depositRequest
+    )
+    {
+        return depositService.deposit(depositRequest.getDepositAmount());
     }
 
 
