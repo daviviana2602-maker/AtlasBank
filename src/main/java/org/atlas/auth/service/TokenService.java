@@ -36,7 +36,7 @@ public class TokenService {
 
     private RefreshTokenEntity findByTokenHash(String hashRefreshToken) {
         return refreshTokenRepository.findByTokenHash(hashRefreshToken)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Token doesn't exists"));
     }
 
 
@@ -50,8 +50,8 @@ public class TokenService {
 
 
         String hashRefreshToken = tokenHashService.sha256(refreshToken);
-        RefreshTokenEntity refresh = findByTokenHash(hashRefreshToken);
 
+        RefreshTokenEntity refresh = findByTokenHash(hashRefreshToken);
 
         if (LocalDateTime.now().isAfter(refresh.getExpiresAt())) {
             throw new BadRequestException("Token has expired");
