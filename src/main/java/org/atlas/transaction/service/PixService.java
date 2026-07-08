@@ -5,6 +5,7 @@ import org.atlas.account.AccountEntity;
 import org.atlas.account.AccountRepository;
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.NotFoundException;
+import org.atlas.security.AuthenticatedService;
 import org.atlas.transaction.entity.LedgerEntity;
 import org.atlas.transaction.entity.PixEntity;
 import org.atlas.transaction.enums.PixStatusEnum;
@@ -32,18 +33,21 @@ public class PixService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final PixRepository pixRepository;
+    private final AuthenticatedService authenticatedService;
 
 
     public PixService(LedgerRepository ledgerRepository,
                       UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
-                      PixRepository pixRepository
+                      PixRepository pixRepository,
+                      AuthenticatedService authenticatedService
     )
     {
         this.ledgerRepository = ledgerRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.pixRepository = pixRepository;
+        this.authenticatedService = authenticatedService;
     }
 
 
@@ -67,8 +71,7 @@ public class PixService {
 
     private AccountEntity getUser(){
 
-        Long userId = (Long) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
+        Long userId = authenticatedService.getAuthenticatedUserId();
 
         UserEntity sendingUser = findUserById(userId);
 

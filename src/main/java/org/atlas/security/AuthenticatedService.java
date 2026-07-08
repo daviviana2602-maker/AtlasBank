@@ -8,7 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
-public class OwnershipService {
+public class AuthenticatedService {
 
     public void checkOwnership(Long resourceOwnerId) {
 
@@ -32,6 +32,16 @@ public class OwnershipService {
                     HttpStatus.FORBIDDEN
             );
         }
+
+    }
+
+
+    public Long getAuthenticatedUserId() {
+
+        return (Long) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
 
     }
 

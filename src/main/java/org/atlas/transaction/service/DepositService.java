@@ -4,6 +4,7 @@ package org.atlas.transaction.service;
 import org.atlas.account.AccountEntity;
 import org.atlas.account.AccountRepository;
 import org.atlas.common.exception.NotFoundException;
+import org.atlas.security.AuthenticatedService;
 import org.atlas.transaction.dto.response.DepositResponse;
 import org.atlas.transaction.entity.LedgerEntity;
 import org.atlas.transaction.enums.TransactionTypeEnum;
@@ -22,11 +23,15 @@ public class DepositService {
 
     private final UserRepository userRepository;
     private final LedgerRepository ledgerRepository;
+    private final AuthenticatedService authenticatedService;
 
 
-    public DepositService(UserRepository userRepository, LedgerRepository ledgerRepository) {
+    public DepositService(UserRepository userRepository,
+                          LedgerRepository ledgerRepository,
+                          AuthenticatedService authenticatedService) {
         this.userRepository = userRepository;
         this.ledgerRepository = ledgerRepository;
+        this.authenticatedService = authenticatedService;
     }
 
 
@@ -53,8 +58,7 @@ public class DepositService {
     @Transactional
     public DepositResponse deposit(BigDecimal depositAmount) {
 
-        Long userId = (Long) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
+        Long userId = authenticatedService.getAuthenticatedUserId();
 
         UserEntity user =  findUserById(userId);
 

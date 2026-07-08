@@ -4,7 +4,7 @@ package org.atlas.account.service;
 import org.atlas.account.AccountEntity;
 import org.atlas.account.AccountRepository;
 import org.atlas.common.exception.NotFoundException;
-import org.atlas.security.OwnershipService;
+import org.atlas.security.AuthenticatedService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,15 +14,15 @@ import java.math.BigDecimal;
 public class ListBalanceService {
 
     private AccountRepository accountRepository;
-    private OwnershipService ownershipService;
+    private AuthenticatedService authenticadeService;
 
 
     public ListBalanceService(AccountRepository accountRepository,
-                              OwnershipService ownershipService
+                              AuthenticatedService authenticadeService
     )
     {
         this.accountRepository = accountRepository;
-        this.ownershipService = ownershipService;
+        this.authenticadeService = authenticadeService;
     }
 
 
@@ -36,10 +36,10 @@ public class ListBalanceService {
 
         AccountEntity account = findById(accountId);
 
-        ownershipService.checkOwnership(accountId);
+        authenticadeService.checkOwnership(accountId);
 
 
-        return  account.getBalance();
+        return account.getBalance();
 
     }
 

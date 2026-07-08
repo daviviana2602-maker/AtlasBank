@@ -3,12 +3,13 @@ package org.atlas.user;
 import jakarta.persistence.*;
 import lombok.*;
 import org.atlas.account.AccountEntity;
+import org.atlas.auth.entity.RefreshTokenEntity;
 import org.atlas.user.enums.UserRoleEnum;
 import org.atlas.user.enums.UserStatusEnum;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.util.List;
 
 
 @Entity
@@ -25,7 +26,10 @@ public class UserEntity {
 
     @OneToOne(mappedBy = "user")
     private AccountEntity account;
-    
+
+    @OneToMany(mappedBy = "user")
+    private List<RefreshTokenEntity> refreshTokens;
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

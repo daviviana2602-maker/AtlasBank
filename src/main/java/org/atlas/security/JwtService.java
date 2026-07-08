@@ -3,8 +3,11 @@ package org.atlas.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.atlas.auth.entity.RefreshTokenEntity;
+import org.atlas.auth.repository.RefreshTokenRepository;
 import org.atlas.user.enums.UserRoleEnum;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
