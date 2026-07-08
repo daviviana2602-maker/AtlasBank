@@ -1,18 +1,22 @@
 package org.atlas.auth;
 
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.atlas.account.service.ListBalanceService;
 import org.atlas.auth.dto.request.CreateAccountRequest;
 import org.atlas.auth.dto.request.LoginRequest;
+import org.atlas.auth.dto.request.LogoutRequest;
 import org.atlas.auth.dto.response.CreateAccountResponse;
 import org.atlas.auth.dto.response.LoginResponse;
 import org.atlas.auth.service.CreateAccountService;
 import org.atlas.auth.service.LoginService;
+import org.atlas.auth.service.LogoutService;
 import org.atlas.auth.service.TokenService;
 import org.atlas.email.VerifyEmailService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -27,10 +31,11 @@ public class AuthController {
     private final CreateAccountService createAccountService;
     private final TokenService tokenService;
     private final VerifyEmailService verifyEmailService;
+    private final LogoutService logoutService;
 
 
     @PostMapping("/login")
-    public LoginResponse createUser(
+    public LoginResponse login(
             @Valid @RequestBody LoginRequest loginRequest
     )
     {
@@ -55,6 +60,19 @@ public class AuthController {
                 createAccountRequest.getPasswordConfirm(),
                 createAccountRequest.getCpf()
         );
+    }
+
+
+    @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<Void> leaveUser(
+            @Valid @RequestBody LogoutRequest logoutRequest
+    )
+    {
+        logoutService.logoutAccount(logoutRequest.getPassword());
+
+        return ResponseEntity.noContent().build();
     }
 
 

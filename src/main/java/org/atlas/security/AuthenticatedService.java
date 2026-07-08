@@ -38,6 +38,14 @@ public class AuthenticatedService {
 
     public Long getAuthenticatedUserId() {
 
+        System.out.println(
+                "FILTER PRINCIPAL: " +
+                        SecurityContextHolder.getContext()
+                                .getAuthentication()
+                                .getPrincipal()
+                                .getClass()
+        );
+
         return (Long) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
