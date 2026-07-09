@@ -3,6 +3,7 @@ package org.atlas.transaction.service;
 
 import org.atlas.account.AccountEntity;
 import org.atlas.account.AccountRepository;
+import org.atlas.common.exception.ForbiddenException;
 import org.atlas.common.exception.NotFoundException;
 import org.atlas.security.AuthenticatedService;
 import org.atlas.transaction.dto.response.DepositResponse;
@@ -61,6 +62,10 @@ public class DepositService {
         Long userId = authenticatedService.getAuthenticatedUserId();
 
         UserEntity user =  findUserById(userId);
+
+        if (user.getAccount().getPassword() == null) {
+            throw new ForbiddenException("Account password is required");
+        }
 
 
         BigDecimal newBalance = user.getAccount().getBalance().add(depositAmount);

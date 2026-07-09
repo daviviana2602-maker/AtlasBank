@@ -45,5 +45,7 @@ public class AccountEntity {
     @Column(unique = true)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column
+    private String password;
 
 }

@@ -4,6 +4,7 @@ package org.atlas.transaction.service;
 import org.atlas.account.AccountEntity;
 import org.atlas.account.AccountRepository;
 import org.atlas.common.exception.BadRequestException;
+import org.atlas.common.exception.ForbiddenException;
 import org.atlas.common.exception.NotFoundException;
 import org.atlas.security.AuthenticatedService;
 import org.atlas.transaction.entity.LedgerEntity;
@@ -193,8 +194,13 @@ public class PixService {
 
         AccountEntity senderAccount = getUser();
 
-        if (!passwordEncoder.matches(password, senderAccount.getUser().getPassword())) {
-            throw new BadRequestException("Wrong password");
+        if (senderAccount.getPassword() == null) {
+            throw new ForbiddenException("Account password is required");
+        }
+
+
+        if (!passwordEncoder.matches(password, senderAccount.getPassword())) {
+            throw new BadRequestException("Wrong account password");
         }
 
 
