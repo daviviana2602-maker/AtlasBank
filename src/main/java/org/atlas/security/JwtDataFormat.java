@@ -13,5 +13,6 @@ public class JwtDataFormat {
 
     private String userId;
     private String role;
+    private String type;
 
 }

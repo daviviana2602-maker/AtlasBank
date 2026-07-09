@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.atlas.common.exception.BadRequestException;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserStatusEnum;
@@ -58,11 +59,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Long userId = Long.valueOf(claims.getUserId());
             String role = claims.getRole();
+            String type = claims.getType();
+
+
+            if (!"ACCESS".equals(type)) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType("application/json");
+                response.getWriter().write("""
+            {"message":"access token is required"}
+            """);
+                return;
+            }
 
 
             UserEntity user = getCurrentUser(userId);
 
-            
 
             if (user.getStatus() == UserStatusEnum.DISABLED) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
