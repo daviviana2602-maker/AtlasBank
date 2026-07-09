@@ -68,5 +68,8 @@ public class UserEntity {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(name = "new_email")
+    private String newEmail;
+
 
 }

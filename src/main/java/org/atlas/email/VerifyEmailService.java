@@ -46,6 +46,17 @@ public class VerifyEmailService {
         }
 
 
+        if (user.getNewEmail() != null){
+
+            user.setEmail(user.getNewEmail());
+
+            user.setNewEmail(null);
+            user.setEmailVerificationToken(null);
+            user.setEmailVerificationExpiresIn(null);
+
+            return;
+        }
+
         user.setEmailVerificationToken(null);
         user.setEmailVerificationExpiresIn(null);
         user.setEmailVerified(true);

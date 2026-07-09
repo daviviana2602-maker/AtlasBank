@@ -36,7 +36,7 @@ public class EmailService {
 
         String html = """
             <h1>Bem vindo ao AtlasBank</h1>
-            <p>Confirme seu email :):</p>
+            <p>Por gentileza, confirme seu email ;)</p>
 
             <a href="http://localhost:8080/v1/auth/verify-email?token=%s">
                 Verificar email aqui
