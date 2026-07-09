@@ -9,6 +9,7 @@ import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -37,6 +38,7 @@ public class LogoutService {
     }
 
 
+    @Transactional
     public void logoutAccount(String password) {
 
         Long userId = authenticatedService.getAuthenticatedUserId();
