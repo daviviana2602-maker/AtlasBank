@@ -57,6 +57,7 @@ public class VerifyEmailService {
             return;
         }
 
+
         user.setEmailVerificationToken(null);
         user.setEmailVerificationExpiresIn(null);
         user.setEmailVerified(true);
@@ -66,6 +67,7 @@ public class VerifyEmailService {
 
         account.setUser(user);
         account.setBalance(BigDecimal.ZERO);
+        accountRepository.save(account);
 
 
     }

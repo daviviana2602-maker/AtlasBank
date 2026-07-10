@@ -66,7 +66,7 @@ public class LoginService {
         UserEntity user = findUserByEmail(email);
 
         if (user.getEmailVerified() == false){
-            throw new ForbiddenException("Verify your email");
+            throw new ForbiddenException("Please verify your email before logging in.");
         }
 
         if (user.getStatus().equals(UserStatusEnum.DISABLED)) {

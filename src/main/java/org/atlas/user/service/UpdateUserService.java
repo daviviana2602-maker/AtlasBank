@@ -7,7 +7,7 @@ import org.atlas.email.EmailService;
 import org.atlas.security.AuthenticatedService;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
-import org.atlas.user.dto.UpdateUserResponse;
+import org.atlas.user.dto.response.UpdateUserResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

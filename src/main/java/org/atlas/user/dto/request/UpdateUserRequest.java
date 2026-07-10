@@ -1,4 +1,4 @@
-package org.atlas.user.dto;
+package org.atlas.user.dto.request;
 
 
 import jakarta.validation.constraints.Email;

@@ -15,6 +15,7 @@ import org.atlas.auth.service.LoginService;
 import org.atlas.auth.service.LogoutService;
 import org.atlas.auth.service.TokenService;
 import org.atlas.email.VerifyEmailService;
+import org.atlas.email.VerifyPasswordService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,7 @@ public class AuthController {
     private final CreateAccountService createAccountService;
     private final TokenService tokenService;
     private final VerifyEmailService verifyEmailService;
+    private final VerifyPasswordService verifyPasswordService;
     private final LogoutService logoutService;
 
 
@@ -83,6 +85,16 @@ public class AuthController {
         verifyEmailService.verify(token);
 
         return ResponseEntity.ok("Email verified");
+    }
+
+
+    @GetMapping("/verify-password")
+    public ResponseEntity<?> verifyPassword(
+            @RequestParam String token
+    ) {
+        verifyPasswordService.checkPassword(token);
+
+        return ResponseEntity.ok("New password verified and approved");
     }
 
 

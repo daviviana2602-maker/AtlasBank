@@ -71,5 +71,14 @@ public class UserEntity {
     @Column(name = "new_email")
     private String newEmail;
 
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_expires_at")
+    private LocalDateTime passwordResetExpiresAt;
+
+    @Column(name = "new_password")
+    private String newPassword;
+
 
 }

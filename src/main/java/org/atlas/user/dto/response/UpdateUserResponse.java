@@ -1,4 +1,4 @@
-package org.atlas.user.dto;
+package org.atlas.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

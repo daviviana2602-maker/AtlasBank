@@ -53,6 +53,27 @@ public class EmailService {
     }
 
 
+    public void sendEmailPassword(String email, String token) {
+
+        String html = """
+            <h1>AtlasBank aqui!</h1>
+            <p>Por gentileza, confirme sua senha ;)</p>
+
+            <a href="http://localhost:8080/v1/auth/verify-password?token=%s">
+                Validar senha aqui
+            </a>
+            """.formatted(token);
+
+
+        sendEmail(
+                email,
+                "Validar senha aqui",
+                html
+
+        );
+    }
+
+
     public void sendEmail(String to, String subject, String html) {
 
 
