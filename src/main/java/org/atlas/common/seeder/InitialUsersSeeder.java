@@ -54,24 +54,45 @@ public class InitialUsersSeeder implements CommandLineRunner {
                 .build();
 
 
+        UserEntity emailUser = UserEntity.builder()
+                .name("EmailUser")
+                .email("daviviana2602@gmail.com")
+                .password(passwordEncoder.encode("atlas"))
+                .cpf("93541134780")
+                .role(UserRoleEnum.USER)
+                .status(UserStatusEnum.ACTIVE)
+                .emailVerified(true)
+                .build();
+
+
         userRepository.save(atlasAdmin);
         userRepository.save(atlasUser);
+        userRepository.save(emailUser);
 
 
         AccountEntity accountAtlasAdmin = AccountEntity.builder()
                         .user(atlasAdmin)
                         .balance(BigDecimal.TEN)
+                        .password(passwordEncoder.encode("123456"))
                         .build();
 
 
         AccountEntity accountAtlasUser = AccountEntity.builder()
                         .user(atlasUser)
                         .balance(BigDecimal.TWO)
+                        .password(passwordEncoder.encode("123456"))
+                        .build();
+
+        AccountEntity accountEmailUser = AccountEntity.builder()
+                        .user(emailUser)
+                        .balance(BigDecimal.ONE)
+                        .password(passwordEncoder.encode("123456"))
                         .build();
 
 
         accountRepository.save(accountAtlasAdmin);
         accountRepository.save(accountAtlasUser);
+        accountRepository.save(accountEmailUser);
 
 
     }

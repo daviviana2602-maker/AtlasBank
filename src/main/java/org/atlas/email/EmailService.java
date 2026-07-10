@@ -53,13 +53,13 @@ public class EmailService {
     }
 
 
-    public void sendEmailPassword(String email, String token) {
+    public void sendEmailUserPassword(String email, String token) {
 
         String html = """
             <h1>AtlasBank aqui!</h1>
-            <p>Por gentileza, confirme sua senha ;)</p>
+            <p>Por gentileza, confirme sua nova senha do usuário ;)</p>
 
-            <a href="http://localhost:8080/v1/auth/verify-password?token=%s">
+            <a href="http://localhost:8080/v1/auth/verify-user-password?token=%s">
                 Validar senha aqui
             </a>
             """.formatted(token);
@@ -67,7 +67,28 @@ public class EmailService {
 
         sendEmail(
                 email,
-                "Validar senha aqui",
+                "Validar senha do usuário aqui",
+                html
+
+        );
+    }
+
+
+    public void sendEmailAccountPassword(String email, String token) {
+
+        String html = """
+            <h1>AtlasBank aqui!</h1>
+            <p>Por gentileza, confirme a nova senha da sua conta atlas ;)</p>
+
+            <a href="http://localhost:8080/v1/auth/verify-account-password?token=%s">
+                Validar senha da conta aqui
+            </a>
+            """.formatted(token);
+
+
+        sendEmail(
+                email,
+                "Validar senha da conta aqui",
                 html
 
         );

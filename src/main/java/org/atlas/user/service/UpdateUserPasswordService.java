@@ -55,7 +55,7 @@ public class UpdateUserPasswordService {
 
         String token = UUID.randomUUID().toString();
 
-        emailService.sendEmailPassword(user.getEmail(), token);
+        emailService.sendEmailUserPassword(user.getEmail(), token);
 
         user.setPasswordResetToken(token);
         user.setPasswordResetExpiresAt(LocalDateTime.now().plusMinutes(10));

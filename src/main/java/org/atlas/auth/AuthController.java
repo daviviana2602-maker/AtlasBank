@@ -4,7 +4,6 @@ package org.atlas.auth;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.atlas.account.service.ListBalanceService;
 import org.atlas.auth.dto.request.CreateAccountRequest;
 import org.atlas.auth.dto.request.LoginRequest;
 import org.atlas.auth.dto.request.LogoutRequest;
@@ -14,8 +13,9 @@ import org.atlas.auth.service.CreateAccountService;
 import org.atlas.auth.service.LoginService;
 import org.atlas.auth.service.LogoutService;
 import org.atlas.auth.service.TokenService;
-import org.atlas.email.VerifyEmailService;
-import org.atlas.email.VerifyPasswordService;
+import org.atlas.email.verification.VerifyAccountPasswordService;
+import org.atlas.email.verification.VerifyEmailService;
+import org.atlas.email.verification.VerifyUserPasswordService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +32,8 @@ public class AuthController {
     private final CreateAccountService createAccountService;
     private final TokenService tokenService;
     private final VerifyEmailService verifyEmailService;
-    private final VerifyPasswordService verifyPasswordService;
+    private final VerifyUserPasswordService verifyUserPasswordService;
+    private final VerifyAccountPasswordService verifyAccountPasswordService;
     private final LogoutService logoutService;
 
 
@@ -88,14 +89,25 @@ public class AuthController {
     }
 
 
-    @GetMapping("/verify-password")
-    public ResponseEntity<?> verifyPassword(
+    @GetMapping("/verify-user-password")
+    public ResponseEntity<?> verifyUserPassword(
             @RequestParam String token
     ) {
-        verifyPasswordService.checkPassword(token);
+        verifyUserPasswordService.checkPassword(token);
 
-        return ResponseEntity.ok("New password verified and approved");
+        return ResponseEntity.ok("New password of the user was verified and approved");
     }
+
+
+    @GetMapping("/verify-account-password")
+    public ResponseEntity<?> verifyAccountPassword(
+            @RequestParam String token
+    ) {
+        verifyAccountPasswordService.checkPasswordAccount(token);
+
+        return ResponseEntity.ok("New account password verified and approved");
+    }
+
 
 
     @PostMapping("/{refreshToken}")
@@ -105,6 +117,7 @@ public class AuthController {
     {
         return tokenService.refreshAccessToken(refreshToken);
     }
+
 
 
 }

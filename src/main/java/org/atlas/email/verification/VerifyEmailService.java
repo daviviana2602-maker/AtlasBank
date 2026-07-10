@@ -1,4 +1,4 @@
-package org.atlas.email;
+package org.atlas.email.verification;
 
 import org.atlas.account.AccountEntity;
 import org.atlas.account.AccountRepository;

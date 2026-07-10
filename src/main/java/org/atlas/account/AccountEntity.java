@@ -8,6 +8,7 @@ import org.atlas.transaction.entity.PixEntity;
 import org.atlas.user.UserEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -47,5 +48,15 @@ public class AccountEntity {
 
     @Column
     private String password;
+
+    @Column(name = "account_password_reset_token")
+    private String accountPasswordResetToken;
+
+    @Column(name = "account_password_reset_expires_at")
+    private LocalDateTime accountPasswordResetExpiresAt;
+
+    @Column(name = "new_account_password")
+    private String newAccountPassword;
+
 
 }

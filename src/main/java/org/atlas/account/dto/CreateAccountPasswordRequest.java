@@ -10,9 +10,9 @@ import lombok.Setter;
 @AllArgsConstructor
 
 
-public class AccountPasswordRequest {
+public class CreateAccountPasswordRequest {
 
-    @NotBlank
+    @NotBlank(message = "Password is required")
     private String password;
 
 }

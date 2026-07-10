@@ -3,8 +3,10 @@ package org.atlas.account;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.atlas.account.dto.AccountPasswordRequest;
+import org.atlas.account.dto.CreateAccountPasswordRequest;
+import org.atlas.account.dto.EditAccountPasswordRequest;
 import org.atlas.account.service.AccountPasswordService;
+import org.atlas.account.service.EditAccountPasswordService;
 import org.atlas.account.service.ListBalanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +24,7 @@ public class AccountController {
 
     private final ListBalanceService listBalanceService;
     private final AccountPasswordService accountPasswordService;
+    private final EditAccountPasswordService editAccountPasswordService;
 
 
 
@@ -39,14 +42,30 @@ public class AccountController {
     @PostMapping("/password")
     @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<Void> accountPassword(
-            @Valid @RequestBody AccountPasswordRequest accountPasswordRequest
+    public ResponseEntity<Void> newAccountPassword(
+            @Valid @RequestBody CreateAccountPasswordRequest createAccountPasswordRequest
     )
     {
-        accountPasswordService.createAccountPassword(accountPasswordRequest.getPassword());
+        accountPasswordService.createAccountPassword(createAccountPasswordRequest.getPassword());
 
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/password")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<Void> changeAccountPassword(
+            @Valid @RequestBody EditAccountPasswordRequest editAccountPasswordRequest
+    )
+    {
+        editAccountPasswordService.editAccountPassword(
+                editAccountPasswordRequest.getUserPassword(),
+                editAccountPasswordRequest.getOldAccountPassword(),
+                editAccountPasswordRequest.getNewAccountPassword()
+
+        );
+
+        return ResponseEntity.noContent().build();
+    }
 
 }

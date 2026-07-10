@@ -1,4 +1,4 @@
-package org.atlas.email;
+package org.atlas.email.verification;
 
 
 import org.atlas.auth.repository.RefreshTokenRepository;
@@ -6,7 +6,6 @@ import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.NotFoundException;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,13 +13,13 @@ import java.time.LocalDateTime;
 
 
 @Service
-public class VerifyPasswordService {
+public class VerifyUserPasswordService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
 
-    public VerifyPasswordService(UserRepository userRepository, RefreshTokenRepository refreshTokenRepository) {
+    public VerifyUserPasswordService(UserRepository userRepository, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
     }

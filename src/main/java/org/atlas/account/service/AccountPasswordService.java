@@ -16,18 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AccountPasswordService {
 
-    private final AccountRepository accountRepository;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticatedService authenticatedService;
 
 
-    public AccountPasswordService(AccountRepository accountRepository,
-                                  UserRepository userRepository,
+    public AccountPasswordService(UserRepository userRepository,
                                   PasswordEncoder passwordEncoder,
                                   AuthenticatedService authenticatedService
     ) {
-        this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticatedService = authenticatedService;

@@ -4,7 +4,6 @@ import org.atlas.auth.dto.response.CreateAccountResponse;
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.ConflictException;
 import org.atlas.email.EmailService;
-import org.atlas.security.JwtService;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserRoleEnum;
