@@ -1,8 +1,8 @@
-package org.atlas.account.service;
+package org.atlas.user.service;
 
 
-import org.atlas.account.AccountEntity;
-import org.atlas.account.AccountRepository;
+import org.atlas.user.UserEntity;
+import org.atlas.user.UserRepository;
 import org.atlas.common.exception.NotFoundException;
 import org.atlas.security.AuthenticatedService;
 import org.springframework.stereotype.Service;
@@ -13,33 +13,31 @@ import java.math.BigDecimal;
 @Service
 public class ListBalanceService {
 
-    private AccountRepository accountRepository;
+    private UserRepository userRepository;
     private AuthenticatedService authenticadeService;
 
 
-    public ListBalanceService(AccountRepository accountRepository,
-                              AuthenticatedService authenticadeService
-    )
+    public ListBalanceService(UserRepository userRepository, AuthenticatedService authenticadeService)
     {
-        this.accountRepository = accountRepository;
+        this.userRepository = userRepository;
         this.authenticadeService = authenticadeService;
     }
 
 
-    private AccountEntity findById(Long accountId) {
-        return accountRepository.findById(accountId)
-                .orElseThrow(() -> new NotFoundException("Account not found"));
+    private UserEntity findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
 
-    public BigDecimal getBalance(Long accountId) {
+    public BigDecimal getBalance() {
 
-        AccountEntity account = findById(accountId);
+        Long userId = authenticadeService.getAuthenticatedUserId();
 
-        authenticadeService.checkOwnership(accountId);
+        UserEntity user =  findById(userId);
 
 
-        return account.getBalance();
+        return user.getAccount().getBalance();
 
     }
 

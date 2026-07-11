@@ -7,7 +7,7 @@ import org.atlas.account.dto.CreateAccountPasswordRequest;
 import org.atlas.account.dto.EditAccountPasswordRequest;
 import org.atlas.account.service.AccountPasswordService;
 import org.atlas.account.service.EditAccountPasswordService;
-import org.atlas.account.service.ListBalanceService;
+import org.atlas.user.service.ListBalanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,14 +28,12 @@ public class AccountController {
 
 
 
-    @GetMapping("/{accountId}/balance")
+    @GetMapping("/balance")
     @PreAuthorize("isAuthenticated()")
     @SecurityRequirement(name = "bearerAuth")
-    public BigDecimal getMoney(
-            @PathVariable Long accountId
-    )
+    public BigDecimal getMoney()
     {
-        return listBalanceService.getBalance(accountId);
+        return listBalanceService.getBalance();
     }
 
 
