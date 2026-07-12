@@ -3,6 +3,7 @@ package org.atlas.auth.repository;
 import org.atlas.auth.entity.RefreshTokenEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity, Long> {
@@ -10,5 +11,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity
     Optional<RefreshTokenEntity> findByTokenHash(String tokenHash);
 
     void deleteAllByUserId(Long userId);
+
+    void deleteByExpiresAtBefore(LocalDateTime expiresAt);
 
 }
