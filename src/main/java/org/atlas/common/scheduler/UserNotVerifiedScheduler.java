@@ -20,7 +20,7 @@ public class UserNotVerifiedScheduler {
     }
 
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 20 * * * *")
     @Transactional
     public void deleteEmailNotVerified() {
         userRepository.deleteByEmailVerifiedFalseAndEmailVerificationExpiresInBefore(LocalDateTime.now());

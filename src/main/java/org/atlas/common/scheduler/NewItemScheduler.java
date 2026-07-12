@@ -24,7 +24,7 @@ public class NewItemScheduler {
     }
 
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 30 * * * *")
     @Transactional
     public void clearNewEmails() {
         userRepository.clearExpiredNewEmails(LocalDateTime.now());
