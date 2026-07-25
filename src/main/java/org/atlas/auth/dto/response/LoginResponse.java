@@ -14,8 +14,5 @@ public class LoginResponse {
     private String name;
     private String email;
     private UserRoleEnum role;
-    private String accessToken;
-    private String refreshToken;
-
 
 }

@@ -3,6 +3,7 @@ package org.atlas.security;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.atlas.common.exception.BadRequestException;
@@ -38,22 +39,42 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().equals("/v1/auth/refresh");
+    }
+
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain
     ) throws ServletException, IOException {
 
 
-        String header = request.getHeader("Authorization");
+        Cookie[] cookies = request.getCookies();
 
-        if (header == null || !header.startsWith("Bearer ")) {
+        String token = null;
+
+        if (cookies != null) {
+
+            for (Cookie cookie : cookies) {
+
+                if ("accessToken".equals(cookie.getName())) {
+
+                    token = cookie.getValue();
+                    break;
+
+                }
+            }
+        }
+
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        try {
 
-            String token = header.replace("Bearer ", "");
+        try {
 
             JwtDataFormat claims = jwtService.extractClaims(token);
 

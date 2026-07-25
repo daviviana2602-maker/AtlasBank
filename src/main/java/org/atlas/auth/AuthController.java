@@ -38,7 +38,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public LoginResponse login(
+    public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest loginRequest
     )
     {
@@ -110,13 +110,14 @@ public class AuthController {
 
 
 
-    @PostMapping("/{refreshToken}")
-    public String token(
-            @PathVariable String refreshToken
+    @PostMapping("/refresh")
+    public ResponseEntity token(
+        @CookieValue("refreshToken") String refreshToken
     )
     {
         return tokenService.refreshAccessToken(refreshToken);
     }
+
 
 
 

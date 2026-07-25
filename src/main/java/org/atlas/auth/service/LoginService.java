@@ -13,10 +13,14 @@ import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserStatusEnum;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -58,7 +62,7 @@ public class LoginService {
 
 
     @Transactional
-    public LoginResponse systemLogin(String email, String password){
+    public ResponseEntity<LoginResponse> systemLogin(String email, String password){
 
         email = normalizeEmail(email);
 
@@ -96,14 +100,38 @@ public class LoginService {
         refreshTokenRepository.save(refresh);
 
 
-        return new LoginResponse(
+        LoginResponse loginResponse = new LoginResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole(),
-                accessToken,
-                refreshToken
+                user.getRole()
         );
+
+
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/v1/auth/refresh")
+                .maxAge(Duration.ofDays(7))
+                .build();
+
+
+        return ResponseEntity.ok()
+                .headers(headers -> {
+                    headers.add(HttpHeaders.SET_COOKIE, accessCookie.toString());
+                    headers.add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+                })
+                .body(loginResponse);
 
     }
 

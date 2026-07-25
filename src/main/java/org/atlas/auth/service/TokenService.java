@@ -11,11 +11,16 @@ import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserRoleEnum;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+
 
 @Service
 public class TokenService {
@@ -41,13 +46,14 @@ public class TokenService {
     }
 
 
-    public String refreshAccessToken(String refreshToken) {
+    public ResponseEntity refreshAccessToken(String refreshToken) {
 
 
         JwtDataFormat data = jwtService.extractClaims(refreshToken);
 
-        Long userId = Long.valueOf(data.getUserId());
-        UserRoleEnum role = UserRoleEnum.valueOf(data.getRole());
+        if (!"REFRESH".equals(data.getType())) {
+            throw new BadRequestException("Refresh token is required");
+        }
 
 
         String hashRefreshToken = tokenHashService.sha256(refreshToken);
@@ -59,7 +65,24 @@ public class TokenService {
         }
 
 
-        return jwtService.generateAccessToken(userId, role);
+        Long userId = Long.valueOf(data.getUserId());
+        UserRoleEnum role = UserRoleEnum.valueOf(data.getRole());
+
+        String accessToken = jwtService.generateAccessToken(userId, role);
+
+
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .build();
 
     }
 
