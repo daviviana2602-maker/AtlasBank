@@ -35,13 +35,15 @@ public class PixService {
     private final UserRepository userRepository;
     private final PixRepository pixRepository;
     private final AuthenticatedService authenticatedService;
+    private final AccountRepository accountRepository;
 
 
     public PixService(LedgerRepository ledgerRepository,
                       UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
                       PixRepository pixRepository,
-                      AuthenticatedService authenticatedService
+                      AuthenticatedService authenticatedService,
+                      AccountRepository accountRepository
     )
     {
         this.ledgerRepository = ledgerRepository;
@@ -49,6 +51,7 @@ public class PixService {
         this.passwordEncoder = passwordEncoder;
         this.pixRepository = pixRepository;
         this.authenticatedService = authenticatedService;
+        this.accountRepository = accountRepository;
     }
 
 
@@ -70,17 +73,6 @@ public class PixService {
     }
 
 
-    private AccountEntity getUser(){
-
-        Long userId = authenticatedService.getAuthenticatedUserId();
-
-        UserEntity sendingUser = findUserById(userId);
-
-        return sendingUser.getAccount();
-
-    }
-
-
     private AccountEntity getAccount(String toCpf, String toEmail, AccountEntity senderAccount){
 
         AccountEntity receiverAccount;
@@ -98,7 +90,8 @@ public class PixService {
                 throw new BadRequestException("You cannot send pix to yourself");
             }
 
-            receiverAccount = userByCpf.getAccount();
+            receiverAccount = accountRepository.findByIdWithLock(userByCpf.getAccount().getId())
+                    .orElseThrow(() -> new NotFoundException("Account not found"));
 
         }
 
@@ -113,11 +106,24 @@ public class PixService {
                 throw new BadRequestException("You cannot send pix to yourself");
             }
 
-            receiverAccount = userByEmail.getAccount();
+            receiverAccount = accountRepository.findByIdWithLock(userByEmail.getAccount().getId())
+                    .orElseThrow(() -> new NotFoundException("Account not found"));
 
         }
 
         return receiverAccount;
+
+    }
+
+
+    private AccountEntity getUser(){
+
+        Long userId = authenticatedService.getAuthenticatedUserId();
+
+        UserEntity sendingUser = findUserById(userId);
+
+        return accountRepository.findByIdWithLock(sendingUser.getAccount().getId())
+                .orElseThrow(() -> new NotFoundException("Account not found"));
 
     }
 

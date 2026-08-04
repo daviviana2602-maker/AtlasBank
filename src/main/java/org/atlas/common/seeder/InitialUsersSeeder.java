@@ -79,13 +79,13 @@ public class InitialUsersSeeder implements CommandLineRunner {
 
         AccountEntity accountAtlasUser = AccountEntity.builder()
                         .user(atlasUser)
-                        .balance(BigDecimal.TWO)
+                        .balance(BigDecimal.TEN)
                         .password(passwordEncoder.encode("123456"))
                         .build();
 
         AccountEntity accountEmailUser = AccountEntity.builder()
                         .user(emailUser)
-                        .balance(BigDecimal.ONE)
+                        .balance(BigDecimal.TEN)
                         .password(passwordEncoder.encode("123456"))
                         .build();
 
