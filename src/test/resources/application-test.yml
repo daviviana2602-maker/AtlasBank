@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    username: postgres
+    password: testpassword
+
+  flyway:
+    enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+
+jwt:
+  secret: secrethere
+  accessExpiration: 10
+  refreshExpiration: 60
+
+
+resend:
+  api:
+    key: re_key
