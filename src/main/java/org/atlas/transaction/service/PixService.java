@@ -20,8 +20,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
+import java.util.concurrent.TimeUnit;
 
 import static org.atlas.common.normalize.StringNormalize.*;
 
@@ -32,14 +34,12 @@ public class PixService {
 
     private final LedgerRepository ledgerRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
     private final PixRepository pixRepository;
     private final AuthenticatedService authenticatedService;
     private final AccountRepository accountRepository;
 
 
     public PixService(LedgerRepository ledgerRepository,
-                      UserRepository userRepository,
                       PasswordEncoder passwordEncoder,
                       PixRepository pixRepository,
                       AuthenticatedService authenticatedService,
@@ -47,7 +47,6 @@ public class PixService {
     )
     {
         this.ledgerRepository = ledgerRepository;
-        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.pixRepository = pixRepository;
         this.authenticatedService = authenticatedService;
@@ -55,76 +54,40 @@ public class PixService {
     }
 
 
-    private UserEntity findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-    }
+    private AccountEntity getReceiverAccount(String toCpf, String toEmail, AccountEntity senderAccount){
 
 
-    private UserEntity findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email: " + email + " not found"));
-    }
-
-
-    private UserEntity findUserByCpf(String cpf) {
-        return userRepository.findByCpf(cpf)
-                .orElseThrow(() -> new NotFoundException("User with cpf: " + cpf + " not found"));
-    }
-
-
-    private AccountEntity getAccount(String toCpf, String toEmail, AccountEntity senderAccount){
-
-        AccountEntity receiverAccount;
-        UserEntity userByCpf;
-        UserEntity userByEmail;
-
-
-        if (toCpf != null && !toCpf.isBlank()){
+        if (toCpf != null && !toCpf.isBlank()) {
 
             toCpf = normalizeCpf(toCpf);
-
-            userByCpf = findUserByCpf(toCpf);
 
             if (toCpf.equals(senderAccount.getUser().getCpf())) {
                 throw new BadRequestException("You cannot send pix to yourself");
             }
 
-            receiverAccount = accountRepository.findByIdWithLock(userByCpf.getAccount().getId())
+            return accountRepository.findByUserCpfWithLock(toCpf)
                     .orElseThrow(() -> new NotFoundException("Account not found"));
 
         }
 
 
-        else {
+        toEmail = normalizeEmail(toEmail);
 
-            toEmail = normalizeEmail(toEmail);
-
-            userByEmail = findUserByEmail(toEmail);
-
-            if (toEmail.equals(senderAccount.getUser().getEmail())) {
-                throw new BadRequestException("You cannot send pix to yourself");
-            }
-
-            receiverAccount = accountRepository.findByIdWithLock(userByEmail.getAccount().getId())
-                    .orElseThrow(() -> new NotFoundException("Account not found"));
-
+        if (toEmail.equals(senderAccount.getUser().getEmail())) {
+            throw new BadRequestException("You cannot send pix to yourself");
         }
 
-        return receiverAccount;
-
+        return accountRepository.findByUserEmailWithLock(toEmail)
+                .orElseThrow(() -> new NotFoundException("Account not found"));
     }
 
 
-    private AccountEntity getUser(){
+    private AccountEntity getSenderAccount() {
 
         Long userId = authenticatedService.getAuthenticatedUserId();
 
-        UserEntity sendingUser = findUserById(userId);
-
-        return accountRepository.findByIdWithLock(sendingUser.getAccount().getId())
+        return accountRepository.findByUserIdWithLock(userId)
                 .orElseThrow(() -> new NotFoundException("Account not found"));
-
     }
 
 
@@ -198,7 +161,18 @@ public class PixService {
         }
 
 
-        AccountEntity senderAccount = getUser();
+        AccountEntity senderAccount = getSenderAccount();
+
+
+        System.out.println(
+                Thread.currentThread().getName()
+                        + " | TX="
+                        + TransactionSynchronizationManager.isActualTransactionActive()
+                        + " | sender id="
+                        + senderAccount.getId()
+                        + " | balance="
+                        + senderAccount.getBalance()
+        );
 
         if (senderAccount.getPassword() == null) {
             throw new ForbiddenException("Account password is required");
@@ -210,7 +184,7 @@ public class PixService {
         }
 
 
-        AccountEntity receiverAccount = getAccount(toCpf, toEmail, senderAccount);
+        AccountEntity receiverAccount = getReceiverAccount(toCpf, toEmail, senderAccount);
 
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0){
