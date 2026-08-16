@@ -82,8 +82,12 @@ Sistema de Pix simulado entre contas da aplicação.
 Inclui:
 
 * Transferência entre contas
-* Validação de saldo
+* Validação de saldo e credenciais
 * Validação de contas existentes
+* Prevenção de transferências para a própria conta
+* Controle de concorrência com locks pessimistas
+* Prevenção de deadlocks através da ordenação dos locks
+* Testes de concorrência com múltiplas threads e Testcontainers
 * Registro das operações
 * Rastreamento através de ledger financeiro
 
