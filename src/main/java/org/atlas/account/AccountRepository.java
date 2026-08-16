@@ -42,6 +42,27 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
     Optional<AccountEntity> findByUserEmailWithLock(String email);
 
 
+    @Query("""
+    SELECT a.id
+    FROM AccountEntity a
+    WHERE a.user.id = :userId
+""")
+    Optional<Long> findAccountIdByUserId(Long userId);
+
+    @Query("""
+    SELECT a.id
+    FROM AccountEntity a
+    WHERE a.user.cpf = :cpf
+""")
+    Optional<Long> findAccountIdByUserCpf(String cpf);
+
+    @Query("""
+    SELECT a.id
+    FROM AccountEntity a
+    WHERE a.user.email = :email
+""")
+    Optional<Long> findAccountIdByUserEmail(String email);
+
 
     @Modifying
     @Query("""

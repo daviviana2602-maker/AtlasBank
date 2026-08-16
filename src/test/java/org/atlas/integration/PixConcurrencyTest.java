@@ -10,10 +10,13 @@ import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserRoleEnum;
 import org.atlas.user.enums.UserStatusEnum;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
@@ -28,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,14 +45,6 @@ import static org.mockito.Mockito.when;
 class PixConcurrencyTest {
 
 
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:16")
-                    .withDatabaseName("atlas")
-                    .withUsername("postgres")
-                    .withPassword("testpassword");
-
     @MockitoBean
     private AuthenticatedService authenticatedService;
 
@@ -58,6 +54,7 @@ class PixConcurrencyTest {
     private final PixRepository pixRepository;
     private final LedgerRepository ledgerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
 
 
@@ -67,7 +64,8 @@ class PixConcurrencyTest {
             UserRepository userRepository,
             PixRepository pixRepository,
             LedgerRepository ledgerRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JdbcTemplate jdbcTemplate
     ) {
         this.pixService = pixService;
         this.accountRepository = accountRepository;
@@ -75,6 +73,25 @@ class PixConcurrencyTest {
         this.pixRepository = pixRepository;
         this.ledgerRepository = ledgerRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:16")
+                    .withDatabaseName("atlas")
+                    .withUsername("postgres")
+                    .withPassword("testpassword");
+
+
+    @BeforeEach
+    void cleanDatabase() throws Exception {
+        jdbcTemplate.execute("""
+        TRUNCATE TABLE ledger_entries, pix, account, users
+        RESTART IDENTITY CASCADE
+    """);
     }
 
 
@@ -195,6 +212,143 @@ class PixConcurrencyTest {
         assertEquals(1, pixRepository.count());
 
         assertEquals(2, ledgerRepository.count());
+
+    }
+
+
+
+    @Test
+    void shouldPreventConcurrentPixAgainstDeadlock() throws Exception {
+
+
+        UserEntity senderOne = new UserEntity();
+        senderOne.setName("SenderOne");
+        senderOne.setEmail("senderone@test.com");
+        senderOne.setCpf("11111111111");
+        senderOne.setPassword("password");
+        senderOne.setRole(UserRoleEnum.USER);
+        senderOne.setStatus(UserStatusEnum.ACTIVE);
+
+        AccountEntity senderOneAccount = new AccountEntity();
+        senderOneAccount.setBalance(new BigDecimal("50.00"));
+        senderOneAccount.setPassword(passwordEncoder.encode("123456"));
+
+        senderOneAccount.setUser(senderOne);
+
+
+        UserEntity senderTwo = new UserEntity();
+        senderTwo.setName("SenderTwo");
+        senderTwo.setEmail("sendertwo@test.com");
+        senderTwo.setCpf("22222222222");
+        senderTwo.setPassword("password");
+        senderTwo.setRole(UserRoleEnum.USER);
+        senderTwo.setStatus(UserStatusEnum.ACTIVE);
+
+        AccountEntity senderTwoAccount = new AccountEntity();
+        senderTwoAccount.setBalance(new BigDecimal("25.00"));
+        senderTwoAccount.setPassword(passwordEncoder.encode("123456"));
+
+        senderTwoAccount.setUser(senderTwo);
+
+
+        userRepository.save(senderOne);
+        userRepository.save(senderTwo);
+
+        accountRepository.save(senderOneAccount);
+        accountRepository.save(senderTwoAccount);
+
+
+        when(authenticatedService.getAuthenticatedUserId())
+                .thenAnswer(invocation -> {
+
+                    String threadName = Thread.currentThread().getName();
+
+                    if (threadName.equals("pix-1")) {
+                        return senderOne.getId();
+                    }
+
+                    return senderTwo.getId();
+                });
+
+
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+
+
+        AtomicInteger threadNumber = new AtomicInteger(1);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2, task -> {
+            Thread thread = new Thread(task);
+            thread.setName("pix-" + threadNumber.getAndIncrement());    // new name to the threads: "pix-1" and "pix-2"
+            return thread;
+        });
+
+
+        Future<Boolean> firstPix = executor.submit(() -> {
+
+            ready.countDown();
+            start.await();
+
+            try {
+                pixService.sendPix(
+                        "sendertwo@test.com",
+                        null,
+                        "PIX 1",
+                        new BigDecimal("20.00"),
+                        "123456"
+                );
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        });
+
+        Future<Boolean> secondPix = executor.submit(() -> {
+
+            ready.countDown();
+            start.await();
+
+            try {
+                pixService.sendPix(
+                        "senderone@test.com",
+                        null,
+                        "PIX 2",
+                        new BigDecimal("20.00"),
+                        "123456"
+                );
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        });
+
+
+        ready.await();
+        start.countDown();
+
+        boolean firstResult = firstPix.get();
+        boolean secondResult = secondPix.get();
+
+        executor.shutdown();
+
+        assertTrue(firstResult && secondResult);
+
+
+        AccountEntity firstSenderFinal = accountRepository.findById(senderOneAccount.getId())
+                .orElseThrow();
+
+        AccountEntity secondSenderFinal = accountRepository.findById(senderTwoAccount.getId())
+                .orElseThrow();
+
+
+        assertEquals(new BigDecimal("50.00"), firstSenderFinal.getBalance());
+
+        assertEquals(new BigDecimal("25.00"), secondSenderFinal.getBalance());
+
+
+        assertEquals(2, pixRepository.count());
+
+        assertEquals(4, ledgerRepository.count());
 
     }
 

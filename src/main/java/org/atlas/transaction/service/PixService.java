@@ -54,18 +54,20 @@ public class PixService {
     }
 
 
-    private AccountEntity getReceiverAccount(String toCpf, String toEmail, AccountEntity senderAccount){
+    private AccountEntity findAccountByIdLocking(Long userId) {
+        return accountRepository.findByUserIdWithLock(userId)
+                .orElseThrow(() -> new NotFoundException("Account not found"));
+    }
+
+
+    private Long getReceiverAccount(String toCpf, String toEmail){
 
 
         if (toCpf != null && !toCpf.isBlank()) {
 
             toCpf = normalizeCpf(toCpf);
 
-            if (toCpf.equals(senderAccount.getUser().getCpf())) {
-                throw new BadRequestException("You cannot send pix to yourself");
-            }
-
-            return accountRepository.findByUserCpfWithLock(toCpf)
+            return accountRepository.findAccountIdByUserCpf(toCpf)
                     .orElseThrow(() -> new NotFoundException("Account not found"));
 
         }
@@ -73,20 +75,16 @@ public class PixService {
 
         toEmail = normalizeEmail(toEmail);
 
-        if (toEmail.equals(senderAccount.getUser().getEmail())) {
-            throw new BadRequestException("You cannot send pix to yourself");
-        }
-
-        return accountRepository.findByUserEmailWithLock(toEmail)
+        return accountRepository.findAccountIdByUserEmail(toEmail)
                 .orElseThrow(() -> new NotFoundException("Account not found"));
     }
 
 
-    private AccountEntity getSenderAccount() {
+    private Long getSenderAccount() {
 
         Long userId = authenticatedService.getAuthenticatedUserId();
 
-        return accountRepository.findByUserIdWithLock(userId)
+        return accountRepository.findAccountIdByUserId(userId)
                 .orElseThrow(() -> new NotFoundException("Account not found"));
     }
 
@@ -161,18 +159,35 @@ public class PixService {
         }
 
 
-        AccountEntity senderAccount = getSenderAccount();
+        Long senderAccountId = getSenderAccount();
+        Long receiverAccountId = getReceiverAccount(toCpf, toEmail);
 
 
-        System.out.println(
-                Thread.currentThread().getName()
-                        + " | TX="
-                        + TransactionSynchronizationManager.isActualTransactionActive()
-                        + " | sender id="
-                        + senderAccount.getId()
-                        + " | balance="
-                        + senderAccount.getBalance()
-        );
+        AccountEntity senderAccount;
+        AccountEntity receiverAccount;
+
+        if (receiverAccountId < senderAccountId) {
+            receiverAccount = findAccountByIdLocking(receiverAccountId);
+            senderAccount = findAccountByIdLocking(senderAccountId);
+
+        }
+        else {
+            senderAccount = findAccountByIdLocking(senderAccountId);
+            receiverAccount = findAccountByIdLocking(receiverAccountId);
+        }
+
+
+        if (toCpf != null) {
+        if (toCpf.equals(senderAccount.getUser().getCpf())) {
+            throw new BadRequestException("You cannot send pix to yourself");
+        }}
+
+
+        if (toEmail != null) {
+            if (toEmail.equals(senderAccount.getUser().getEmail())) {
+            throw new BadRequestException("You cannot send pix to yourself");
+        }}
+
 
         if (senderAccount.getPassword() == null) {
             throw new ForbiddenException("Account password is required");
@@ -183,8 +198,6 @@ public class PixService {
             throw new BadRequestException("Wrong account password");
         }
 
-
-        AccountEntity receiverAccount = getReceiverAccount(toCpf, toEmail, senderAccount);
 
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0){
