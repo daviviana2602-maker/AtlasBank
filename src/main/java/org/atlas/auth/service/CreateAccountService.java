@@ -1,9 +1,10 @@
 package org.atlas.auth.service;
 
 import org.atlas.auth.dto.response.CreateAccountResponse;
+import org.atlas.common.messaging.event.UserRegisteredEvent;
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.ConflictException;
-import org.atlas.email.EmailService;
+import org.atlas.common.messaging.producer.UserEventProducer;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserRoleEnum;
@@ -24,17 +25,17 @@ public class CreateAccountService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    private final UserEventProducer userEventProducer;
 
 
     public CreateAccountService(UserRepository userRepository,
                                 PasswordEncoder passwordEncoder,
-                                EmailService emailService
+                                UserEventProducer userEventProducer
     )
     {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
+        this.userEventProducer = userEventProducer;
     }
 
 
@@ -93,6 +94,13 @@ public class CreateAccountService {
         user.setPassword(passwordHash);
 
 
+        String token = UUID.randomUUID().toString();
+
+        user.setEmailVerified(false);
+        user.setEmailVerificationToken(token);
+        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(10));
+
+        
         userRepository.saveAndFlush(user);
 
         if (user.getId() == 1) {
@@ -100,13 +108,7 @@ public class CreateAccountService {
         }
 
 
-        String token = UUID.randomUUID().toString();
-
-        user.setEmailVerified(false);
-        user.setEmailVerificationToken(token);
-        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(10));
-
-        emailService.sendVerificationEmail(email, token);
+        userEventProducer.publishUserRegistered(new UserRegisteredEvent(email, token));
 
 
         return new CreateAccountResponse(
