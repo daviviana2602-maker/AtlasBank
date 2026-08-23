@@ -42,7 +42,7 @@ public class CreateAccountService {
         return userRepository.existsByEmail(email);
     }
 
-    private boolean exsitsByCpf(String cpf) {
+    private boolean existsByCpf(String cpf) {
         return userRepository.existsByCpf(cpf);
     }
 
@@ -60,7 +60,7 @@ public class CreateAccountService {
             throw new ConflictException("Email already exists");
         }
         
-        if (exsitsByCpf(cpf)) {
+        if (existsByCpf(cpf)) {
             throw new ConflictException("Cpf already exists");
         }
 
@@ -93,6 +93,13 @@ public class CreateAccountService {
         user.setPassword(passwordHash);
 
 
+        userRepository.saveAndFlush(user);
+
+        if (user.getId() == 1) {
+            user.setRole(UserRoleEnum.ADMIN);
+        }
+
+
         String token = UUID.randomUUID().toString();
 
         user.setEmailVerified(false);
@@ -100,13 +107,6 @@ public class CreateAccountService {
         user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(10));
 
         emailService.sendVerificationEmail(email, token);
-
-
-        userRepository.saveAndFlush(user);
-
-        if (user.getId() == 1) {
-            user.setRole(UserRoleEnum.ADMIN);
-        }
 
 
         return new CreateAccountResponse(
