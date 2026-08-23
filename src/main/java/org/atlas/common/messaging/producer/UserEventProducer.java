@@ -20,8 +20,8 @@ public class UserEventProducer {
 
     public void publishUserRegistered(UserRegisteredEvent event) {
         rabbitTemplate.convertAndSend(
-                RabbitConfig.EXCHANGE,
-                RabbitConfig.ROUTING_KEY,
+                RabbitConfig.ATLAS_EXCHANGE,
+                RabbitConfig.USER_REGISTERED_ROUTING_KEY,
                 event
         );
 

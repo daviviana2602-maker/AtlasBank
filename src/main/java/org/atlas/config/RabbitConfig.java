@@ -14,21 +14,22 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-    public static final String QUEUE = "email.queue";
-    public static final String EXCHANGE = "atlas.exchange";
+    public static final String ATLAS_EXCHANGE = "atlas.exchange";
 
-    public static final String ROUTING_KEY = "user.registered";
+    public static final String EMAIL_QUEUE = "email.queue";
+
+    public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
 
 
     @Bean
     public Queue emailQueue() {
-        return new Queue(QUEUE, true);
+        return new Queue(EMAIL_QUEUE, true);
     }
 
 
     @Bean
     public DirectExchange exchange() {
-        return new DirectExchange(EXCHANGE);
+        return new DirectExchange(ATLAS_EXCHANGE);
     }
 
 
@@ -37,11 +38,11 @@ public class RabbitConfig {
         return BindingBuilder
                 .bind(emailQueue)
                 .to(exchange)
-                .with(ROUTING_KEY);
+                .with(USER_REGISTERED_ROUTING_KEY);
     }
 
 
-    
+
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter(ObjectMapper objectMapper) {
 

@@ -19,7 +19,7 @@ public class EmailConsumer {
     }
 
 
-    @RabbitListener(queues = RabbitConfig.QUEUE)
+    @RabbitListener(queues = RabbitConfig.EMAIL_QUEUE)
     public void consume(UserRegisteredEvent event) {
 
         emailService.sendVerificationEmail(

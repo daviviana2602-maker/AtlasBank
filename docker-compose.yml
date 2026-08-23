@@ -10,14 +10,26 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d atlas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: atlas-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 
   app:
     build: .
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       DB_URL: ${DB_URL}
       DB_USER: ${DB_USER}
