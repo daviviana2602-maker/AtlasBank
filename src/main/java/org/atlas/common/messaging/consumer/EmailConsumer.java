@@ -2,7 +2,7 @@ package org.atlas.common.messaging.consumer;
 
 import org.atlas.common.messaging.event.UserRegisteredEvent;
 
-import org.atlas.config.RabbitConfig;
+import org.atlas.common.messaging.RabbitConfig;
 import org.atlas.email.EmailService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;

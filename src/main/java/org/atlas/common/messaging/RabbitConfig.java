@@ -1,4 +1,4 @@
-package org.atlas.config;
+package org.atlas.common.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
