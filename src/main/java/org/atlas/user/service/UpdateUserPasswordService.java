@@ -2,7 +2,8 @@ package org.atlas.user.service;
 
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.NotFoundException;
-import org.atlas.email.EmailService;
+import org.atlas.common.messaging.event.UserChangedPasswordEvent;
+import org.atlas.common.messaging.producer.UserChangedPasswordEventProducer;
 import org.atlas.security.AuthenticatedService;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
@@ -21,17 +22,18 @@ public class UpdateUserPasswordService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticatedService authenticatedService;
-    private final EmailService emailService;
+    private final UserChangedPasswordEventProducer userChangedPasswordEventProducer;
 
 
     public UpdateUserPasswordService(UserRepository userRepository,
                                      PasswordEncoder passwordEncoder,
                                      AuthenticatedService authenticatedService,
-                                     EmailService emailService) {
+                                     UserChangedPasswordEventProducer userChangedPasswordEventProducer
+                                     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticatedService = authenticatedService;
-        this.emailService = emailService;
+        this.userChangedPasswordEventProducer = userChangedPasswordEventProducer;
     }
 
 
@@ -55,12 +57,12 @@ public class UpdateUserPasswordService {
 
         String token = UUID.randomUUID().toString();
 
-        emailService.sendEmailUserPassword(user.getEmail(), token);
-
         user.setPasswordResetToken(token);
-        user.setPasswordResetExpiresAt(LocalDateTime.now().plusMinutes(10));
+        user.setPasswordResetExpiresAt(LocalDateTime.now().plusHours(1));
 
         user.setNewPassword(passwordEncoder.encode(newPassword));
+
+        userChangedPasswordEventProducer.publishUserChangedPassword(new UserChangedPasswordEvent(user.getEmail(), token));
 
     }
 

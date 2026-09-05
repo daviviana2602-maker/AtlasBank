@@ -1,5 +1,6 @@
 package org.atlas.common.messaging.consumer;
 
+import org.atlas.common.messaging.event.UserChangedPasswordEvent;
 import org.atlas.common.messaging.event.UserRegisteredEvent;
 
 import org.atlas.common.messaging.RabbitConfig;
@@ -19,7 +20,7 @@ public class EmailConsumer {
     }
 
 
-    @RabbitListener(queues = RabbitConfig.EMAIL_QUEUE)
+    @RabbitListener(queues = RabbitConfig.USER_REGISTERED_QUEUE)
     public void consume(UserRegisteredEvent event) {
 
         emailService.sendVerificationEmail(
@@ -28,5 +29,17 @@ public class EmailConsumer {
         );
 
     }
+
+
+    @RabbitListener(queues = RabbitConfig.USER_CHANGED_PASSWORD_QUEUE)
+    public void consume(UserChangedPasswordEvent event) {
+        
+        emailService.sendEmailUserPassword(
+                event.getEmail(),
+                event.getToken()
+        );
+
+    }
+
 
 }
