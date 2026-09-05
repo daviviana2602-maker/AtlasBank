@@ -18,9 +18,11 @@ public class RabbitConfig {
 
     public static final String USER_REGISTERED_QUEUE = "user.registered.queue";
     public static final String USER_CHANGED_PASSWORD_QUEUE = "user.changed.password.queue";
+    public static final String ACCOUNT_CHANGED_PASSWORD_QUEUE = "account.changed.password.queue";
 
     public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
     public static final String USER_CHANGED_PASSWORD_ROUTING_KEY = "user.changed.password";
+    public static final String ACCOUNT_CHANGED_PASSWORD_ROUTING_KEY = "account.changed.password";
 
 
     @Bean
@@ -33,6 +35,12 @@ public class RabbitConfig {
     public Queue userChangedPasswordQueue() {
         return new Queue(USER_CHANGED_PASSWORD_QUEUE, true);
     }
+
+    @Bean
+    public Queue accountChangedPasswordQueue() {
+        return new Queue(ACCOUNT_CHANGED_PASSWORD_QUEUE, true);
+    }
+
 
 
     @Bean
@@ -56,6 +64,15 @@ public class RabbitConfig {
                 .bind(userChangedPasswordQueue)
                 .to(exchange)
                 .with(USER_CHANGED_PASSWORD_ROUTING_KEY);
+    }
+
+
+    @Bean
+    public Binding accountChangedPasswordBinding(Queue accountChangedPasswordQueue, DirectExchange exchange) {
+        return BindingBuilder
+                .bind(accountChangedPasswordQueue)
+                .to(exchange)
+                .with(ACCOUNT_CHANGED_PASSWORD_ROUTING_KEY);
     }
 
 

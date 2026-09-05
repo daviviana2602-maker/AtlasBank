@@ -3,6 +3,8 @@ package org.atlas.account.service;
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.ForbiddenException;
 import org.atlas.common.exception.NotFoundException;
+import org.atlas.common.messaging.event.AccountChangedPasswordEvent;
+import org.atlas.common.messaging.producer.AccountChangedPasswordEventProducer;
 import org.atlas.email.EmailService;
 import org.atlas.security.AuthenticatedService;
 import org.atlas.user.UserEntity;
@@ -19,18 +21,18 @@ import java.util.UUID;
 public class EditAccountPasswordService {
 
 
-    private final EmailService emailService;
+    private final AccountChangedPasswordEventProducer accountChangedPasswordEventProducer;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticatedService authenticatedService;
 
 
-    public EditAccountPasswordService(EmailService emailService,
+    public EditAccountPasswordService(AccountChangedPasswordEventProducer accountChangedPasswordEventProducer,
                                       UserRepository userRepository,
                                       PasswordEncoder passwordEncoder,
                                       AuthenticatedService authenticatedService
     ) {
-        this.emailService = emailService;
+        this.accountChangedPasswordEventProducer = accountChangedPasswordEventProducer;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticatedService = authenticatedService;
@@ -73,12 +75,13 @@ public class EditAccountPasswordService {
 
         String token = UUID.randomUUID().toString();
 
-        emailService.sendEmailAccountPassword(user.getEmail(), token);
-
         user.getAccount().setAccountPasswordResetToken(token);
-        user.getAccount().setAccountPasswordResetExpiresAt(LocalDateTime.now().plusMinutes(10));
+        user.getAccount().setAccountPasswordResetExpiresAt(LocalDateTime.now().plusHours(1));
 
         user.getAccount().setNewAccountPassword(passwordEncoder.encode(newPassword));
+
+
+        accountChangedPasswordEventProducer.publishAccountChangedPassword(new AccountChangedPasswordEvent(user.getEmail(), token));
 
 
     }
