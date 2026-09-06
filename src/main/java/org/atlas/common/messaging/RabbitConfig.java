@@ -2,10 +2,7 @@ package org.atlas.common.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,15 +16,21 @@ public class RabbitConfig {
     public static final String USER_REGISTERED_QUEUE = "user.registered.queue";
     public static final String USER_CHANGED_PASSWORD_QUEUE = "user.changed.password.queue";
     public static final String ACCOUNT_CHANGED_PASSWORD_QUEUE = "account.changed.password.queue";
+    public static final String USER_REGISTERED_DLQ = "user.registered.dlq";
 
     public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
     public static final String USER_CHANGED_PASSWORD_ROUTING_KEY = "user.changed.password";
     public static final String ACCOUNT_CHANGED_PASSWORD_ROUTING_KEY = "account.changed.password";
+    public static final String USER_REGISTERED_DLQ_ROUTING_KEY = "user.registered.dlq";
 
 
     @Bean
     public Queue userRegisteredQueue() {
-        return new Queue(USER_REGISTERED_QUEUE, true);
+        return QueueBuilder
+                .durable(USER_REGISTERED_QUEUE)
+                .deadLetterExchange(ATLAS_EXCHANGE)
+                .deadLetterRoutingKey(USER_REGISTERED_DLQ_ROUTING_KEY)
+                .build();
     }
 
 
@@ -36,9 +39,16 @@ public class RabbitConfig {
         return new Queue(USER_CHANGED_PASSWORD_QUEUE, true);
     }
 
+
     @Bean
     public Queue accountChangedPasswordQueue() {
         return new Queue(ACCOUNT_CHANGED_PASSWORD_QUEUE, true);
+    }
+
+
+    @Bean
+    public Queue userRegisteredDlq() {
+        return new Queue(USER_REGISTERED_DLQ, true);
     }
 
 
@@ -47,6 +57,7 @@ public class RabbitConfig {
     public DirectExchange exchange() {
         return new DirectExchange(ATLAS_EXCHANGE);
     }
+
 
 
     @Bean
@@ -73,6 +84,15 @@ public class RabbitConfig {
                 .bind(accountChangedPasswordQueue)
                 .to(exchange)
                 .with(ACCOUNT_CHANGED_PASSWORD_ROUTING_KEY);
+    }
+
+
+    @Bean
+    public Binding userRegisteredDlqBinding(Queue userRegisteredDlq, DirectExchange exchange) {
+        return BindingBuilder
+                .bind(userRegisteredDlq)
+                .to(exchange)
+                .with(USER_REGISTERED_DLQ_ROUTING_KEY);
     }
 
 

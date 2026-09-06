@@ -10,7 +10,7 @@ import lombok.Getter;
 
 public class UserRegisteredEvent{
 
+        Long userId;
         String email;
-        String token;
 
 }

@@ -93,13 +93,6 @@ public class CreateAccountService {
 
         user.setPassword(passwordHash);
 
-
-        String token = UUID.randomUUID().toString();
-
-        user.setEmailVerified(false);
-        user.setEmailVerificationToken(token);
-        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(30));
-
         
         userRepository.saveAndFlush(user);
 
@@ -108,7 +101,7 @@ public class CreateAccountService {
         }
 
 
-        userEventProducer.publishUserRegistered(new UserRegisteredEvent(email, token));
+        userEventProducer.publishUserRegistered(new UserRegisteredEvent(user.getId(), email));
 
 
         return new CreateAccountResponse(
