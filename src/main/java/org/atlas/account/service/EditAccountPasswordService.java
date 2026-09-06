@@ -76,7 +76,7 @@ public class EditAccountPasswordService {
         String token = UUID.randomUUID().toString();
 
         user.getAccount().setAccountPasswordResetToken(token);
-        user.getAccount().setAccountPasswordResetExpiresAt(LocalDateTime.now().plusHours(1));
+        user.getAccount().setAccountPasswordResetExpiresAt(LocalDateTime.now().plusMinutes(30));
 
         user.getAccount().setNewAccountPassword(passwordEncoder.encode(newPassword));
 

@@ -98,7 +98,7 @@ public class CreateAccountService {
 
         user.setEmailVerified(false);
         user.setEmailVerificationToken(token);
-        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusHours(1));
+        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(30));
 
         
         userRepository.saveAndFlush(user);

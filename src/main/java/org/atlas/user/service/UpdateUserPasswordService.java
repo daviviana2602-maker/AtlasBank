@@ -58,7 +58,7 @@ public class UpdateUserPasswordService {
         String token = UUID.randomUUID().toString();
 
         user.setPasswordResetToken(token);
-        user.setPasswordResetExpiresAt(LocalDateTime.now().plusHours(1));
+        user.setPasswordResetExpiresAt(LocalDateTime.now().plusMinutes(30));
 
         user.setNewPassword(passwordEncoder.encode(newPassword));
 
