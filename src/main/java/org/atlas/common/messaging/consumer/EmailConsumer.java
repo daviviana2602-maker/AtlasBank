@@ -42,7 +42,9 @@ public class EmailConsumer {
 
         String token;
 
-        if (user.getEmailVerificationExpiresIn().isBefore(LocalDateTime.now())) {
+        if (user.getEmailVerificationToken() == null
+            || user.getEmailVerificationExpiresIn() == null
+            || user.getEmailVerificationExpiresIn().isBefore(LocalDateTime.now())) {
 
             token = UUID.randomUUID().toString();
 
@@ -50,8 +52,9 @@ public class EmailConsumer {
             user.setEmailVerificationToken(token);
             user.setEmailVerificationExpiresIn(LocalDateTime.now().plusHours(1));
 
-        }
-        else {
+            userRepository.save(user);
+
+        } else {
             token = user.getEmailVerificationToken();
         }
 
