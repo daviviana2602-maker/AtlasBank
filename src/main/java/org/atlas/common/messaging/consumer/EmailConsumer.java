@@ -48,7 +48,7 @@ public class EmailConsumer {
 
             user.setEmailVerified(false);
             user.setEmailVerificationToken(token);
-            user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(30));
+            user.setEmailVerificationExpiresIn(LocalDateTime.now().plusHours(1));
 
         }
         else {
