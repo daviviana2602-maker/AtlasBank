@@ -18,23 +18,25 @@ Desenvolvida com **Java 21 + Spring Boot**, aplicando conceitos de backend profi
 
 ## 📖 Sobre o projeto
 
-O **AtlasBank** aborda **autenticação, segurança, operações financeiras, concorrência, mensageria assíncrona, resiliência e rastreabilidade** — construído como um estudo profundo de arquitetura backend aplicada a um domínio financeiro.
+O **AtlasBank** é uma API REST bancária simulada que aborda **autenticação, segurança, operações financeiras, concorrência, mensageria assíncrona, resiliência e rastreabilidade** — construída como um estudo profundo de arquitetura backend aplicada a um domínio financeiro.
+
+O projeto simula um sistema de **Pix interno**, com validações de saldo, credenciais e contas, controle de concorrência via locks pessimistas, processamento assíncrono de emails transacionais com recovery automático de falhas, e um ledger completo para histórico de movimentações.
 
 ---
 
 ## 📑 Sumário
 
 - [Stack](#-stack)
-- [Principais funcionalidades](#-principais-funcionalidades)
+- [Principais funcionalidades](#️-principais-funcionalidades)
 - [Ledger financeiro](#-ledger-financeiro)
 - [Mensageria e processamento assíncrono](#-mensageria-e-processamento-assíncrono)
 - [Retry e Backoff](#-retry-e-backoff)
 - [Dead Letter Queue](#️-dead-letter-queue)
 - [Recovery de mensagens](#-recovery-de-mensagens)
 - [Email transacional](#-email-transacional)
-- [Redis](#-redis)
+- [Rotinas automáticas — Schedulers](#️-rotinas-automáticas--schedulers)
 - [Segurança](#-segurança)
-- [Banco de dados](#-banco-de-dados)
+- [Banco de dados](#️-banco-de-dados)
 - [Arquitetura](#-arquitetura)
 - [Testes e concorrência](#-testes-e-concorrência)
 - [Infraestrutura](#-infraestrutura)
@@ -81,7 +83,7 @@ O **AtlasBank** aborda **autenticação, segurança, operações financeiras, co
 - RBAC (`USER` / `ADMIN`)
 - BCrypt
 - Ownership validation
-- HttpOnly Cookies
+- Cookies HttpOnly + SameSite
 
 </td>
 </tr>
@@ -93,7 +95,6 @@ O **AtlasBank** aborda **autenticação, segurança, operações financeiras, co
 
 **Infraestrutura**
 - Docker / Docker Compose
-- GitHub Actions
 - Swagger / OpenAPI
 - Testcontainers
 - JUnit 5 / Mockito
@@ -118,7 +119,7 @@ O **AtlasBank** aborda **autenticação, segurança, operações financeiras, co
 |---|---|
 | Cadastro de usuários | Criação de conta com validação de dados |
 | Verificação de email | Confirmação por token enviado ao usuário |
-| Login com JWT | Autenticação via Access Token e Refresh Token |
+| Login com JWT | Autenticação via Access Token e Refresh Token, protegidos em Cookies HttpOnly + SameSite |
 | Logout | Invalidação do Refresh Token |
 | Alteração de senha / email / dados | Atualizações protegidas de conta |
 | Controle de acesso por roles | RBAC (`USER` / `ADMIN`) |
@@ -136,7 +137,7 @@ Sistema de transferência entre contas da própria aplicação, incluindo:
 - ✅ Validação de credenciais
 - ✅ Validação de contas
 - ✅ Prevenção de transferência para a própria conta
-- ✅ Locks pessimistas
+- ✅ Locks pessimistas no PostgreSQL
 - ✅ Ordenação de locks para prevenção de deadlocks
 - ✅ Testes de concorrência com múltiplas threads
 - ✅ Testes de integração com Testcontainers
@@ -146,7 +147,7 @@ Sistema de transferência entre contas da própria aplicação, incluindo:
 
 ## 📒 Ledger financeiro
 
-O AtlasBank utiliza um **ledger financeiro** para manter rastreabilidade das movimentações. Cada entrada registra:
+O AtlasBank utiliza um **ledger financeiro** para manter rastreabilidade completa das movimentações. Cada entrada registra:
 
 - Tipo da operação
 - Valor
@@ -160,7 +161,7 @@ O AtlasBank utiliza um **ledger financeiro** para manter rastreabilidade das mov
 
 ## 📬 Mensageria e processamento assíncrono
 
-O AtlasBank utiliza **RabbitMQ + Spring AMQP** para desacoplar operações que não precisam ser executadas dentro do fluxo principal da requisição — como o processamento de **emails transacionais**.
+O AtlasBank utiliza **RabbitMQ + Spring AMQP** para desacoplar operações que não precisam ser executadas dentro do fluxo principal da requisição — como o processamento de **emails transacionais** — através de queues, exchanges, routing keys e bindings.
 
 ```text
 Application
@@ -241,7 +242,7 @@ A fila principal possui configuração de:
 - Fila durável
 - Mensagens persistentes
 
-> Isso permite preservar mensagens que não puderam ser processadas após todas as tentativas.
+> Isso permite preservar mensagens que não puderam ser processadas após todas as tentativas, garantindo reprocessamento após falhas prolongadas do serviço externo (Resend).
 
 ---
 
@@ -291,28 +292,30 @@ Fluxos implementados:
 
 > O token de verificação possui expiração e é gerenciado pelo consumidor do evento, permitindo que uma mensagem recuperada da DLQ gere um novo token caso o original já tenha expirado.
 
-## ⏱️ Rotinas Automáticas — Schedulers
+---
 
-- Schedulers responsáveis pela manutenção e recuperação automática do sistema:
+## ⏱️ Rotinas automáticas — Schedulers
 
+Schedulers responsáveis pela manutenção e recuperação automática do sistema:
 
-- 🔁 Recovery de mensagens da DLQ	Reprocessamento automático de mensagens que falharam após esgotarem os retries, permitindo nova tentativa de processamento quando o serviço externo se recupera.
-- 🔑 Limpeza de tokens expirados	Remoção automática de tokens de autenticação e confirmação que já não são válidos.
-- 👤 Limpeza de usuários e contas não verificados	Remoção de registros temporários de usuários e contas que não concluíram a verificação dentro do período definido.
-- 🔒 Limpeza de senhas não verificadas	Remoção automática de alterações de senha pendentes que não foram confirmadas dentro do prazo.
+| Scheduler | Descrição |
+|---|---|
+| 🔁 Recovery de mensagens da DLQ | Reprocessamento automático de mensagens que falharam após esgotarem os retries, permitindo nova tentativa quando o serviço externo se recupera |
+| 🔑 Limpeza de tokens expirados | Remoção automática de tokens de autenticação e confirmação que já não são válidos |
+| 👤 Limpeza de usuários e contas não verificados | Remoção de registros temporários que não concluíram a verificação dentro do período definido |
+| 🔒 Limpeza de senhas não verificadas | Remoção automática de alterações de senha pendentes que não foram confirmadas dentro do prazo |
 
 ---
 
 ## 🔒 Segurança
 
-- JWT
-- Access Token e Refresh Token
-- RBAC
+- JWT (Access Token e Refresh Token)
+- Cookies HttpOnly + SameSite para proteção dos tokens
+- RBAC (`USER` / `ADMIN`)
 - BCrypt
-- HttpOnly Cookies
 - Ownership validation
 - Expiração de tokens
-- Invalidação de Refresh Tokens
+- Invalidação de Refresh Tokens após alterações sensíveis
 - Rate limiting
 - Separação entre senha de usuário e senha de operações financeiras
 
@@ -369,9 +372,9 @@ O projeto possui testes unitários e de integração utilizando:
 - JUnit 5
 - Mockito
 - Testcontainers
-- PostgreSQL em container
+- PostgreSQL real em container
 
-> Os testes de concorrência simulam múltiplas operações financeiras simultâneas para validar o comportamento dos locks e a consistência das transações.
+> Os testes de concorrência simulam múltiplas operações financeiras simultâneas com múltiplas threads para validar o comportamento dos locks pessimistas e a consistência das transações.
 
 ---
 
@@ -384,15 +387,13 @@ O ambiente de desenvolvimento é containerizado utilizando **Docker Compose**.
 │ Spring Boot  │
 └──────┬───────┘
        │
- ┌─────┼──────────────┐
- ▼     ▼              ▼
-Postgres Redis      RabbitMQ
-                       │
-                       ▼
-                    Resend
+ ┌─────┴──────┐
+ ▼            ▼
+Postgres   RabbitMQ
+               │
+               ▼
+            Resend
 ```
-
-O projeto também possui pipeline de CI utilizando **GitHub Actions**, incluindo execução dos testes e build da aplicação.
 
 ---
 
@@ -437,7 +438,6 @@ O AtlasBank foi desenvolvido para aprofundar conhecimentos em:
 - Concorrência e transações
 - Mensageria assíncrona
 - Integração com serviços externos
-- Cache e Rate Limiting
 - Testcontainers
 - Arquitetura de software
 
@@ -451,4 +451,7 @@ O AtlasBank foi desenvolvido para aprofundar conhecimentos em:
 
 Backend Developer focado em **Java, Spring Boot e sistemas backend distribuídos**.
 
+[GitHub](https://github.com/daviviana2602-maker/AtlasBank)
+
 </div>
+
