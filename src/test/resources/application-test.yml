@@ -10,6 +10,15 @@ spring:
     hibernate:
       ddl-auto: validate
 
+  rabbitmq:
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 2
+          initial-interval: 10000
+          multiplier: 1
+
 
 jwt:
   secret: secrethere
