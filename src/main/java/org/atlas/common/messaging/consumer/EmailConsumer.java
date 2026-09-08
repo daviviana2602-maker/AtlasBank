@@ -2,6 +2,7 @@ package org.atlas.common.messaging.consumer;
 
 import org.atlas.common.exception.NotFoundException;
 import org.atlas.common.messaging.event.AccountChangedPasswordEvent;
+import org.atlas.common.messaging.event.UserChangedEmailEvent;
 import org.atlas.common.messaging.event.UserChangedPasswordEvent;
 import org.atlas.common.messaging.event.UserRegisteredEvent;
 
@@ -81,6 +82,17 @@ public class EmailConsumer {
     public void consume(AccountChangedPasswordEvent event) {
 
         emailService.sendEmailAccountPassword(
+                event.getEmail(),
+                event.getToken()
+        );
+
+    }
+
+
+    @RabbitListener(queues = RabbitConfig.USER_CHANGED_EMAIL_QUEUE)
+    public void consume(UserChangedEmailEvent event) {
+
+        emailService.sendVerificationEmail(
                 event.getEmail(),
                 event.getToken()
         );

@@ -1,27 +1,26 @@
 package org.atlas.common.messaging.producer;
 
-import org.atlas.common.messaging.event.UserRegisteredEvent;
 import org.atlas.common.messaging.RabbitConfig;
+import org.atlas.common.messaging.event.UserChangedEmailEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
-
 @Component
-public class UserEventProducer {
+public class UserChangedEmailEventProducer {
 
 
     private final RabbitTemplate rabbitTemplate;
 
 
-    public UserEventProducer(RabbitTemplate rabbitTemplate) {
+    public UserChangedEmailEventProducer(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
 
-    public void publishUserRegistered(UserRegisteredEvent event) {
+    public void publishUserChangedEmail(UserChangedEmailEvent event) {
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ATLAS_EXCHANGE,
-                RabbitConfig.USER_REGISTERED_ROUTING_KEY,
+                RabbitConfig.USER_CHANGED_EMAIL_ROUTING_KEY,
                 event
         );
 

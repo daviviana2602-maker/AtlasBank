@@ -3,6 +3,8 @@ package org.atlas.user.service;
 
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.NotFoundException;
+import org.atlas.common.messaging.event.UserChangedEmailEvent;
+import org.atlas.common.messaging.producer.UserChangedEmailEventProducer;
 import org.atlas.email.EmailService;
 import org.atlas.security.AuthenticatedService;
 import org.atlas.user.UserEntity;
@@ -23,15 +25,16 @@ public class UpdateUserService {
 
     private final UserRepository userRepository;
     private final AuthenticatedService authenticatedService;
-    private final EmailService emailService;
+    private final UserChangedEmailEventProducer userChangedEmailEventProducer;
+
 
 
     public UpdateUserService(UserRepository userRepository,
                              AuthenticatedService authenticatedService,
-                             EmailService emailService) {
+                             UserChangedEmailEventProducer userChangedEmailEventProducer) {
         this.userRepository = userRepository;
         this.authenticatedService = authenticatedService;
-        this.emailService = emailService;
+        this.userChangedEmailEventProducer = userChangedEmailEventProducer;
     }
 
 
@@ -86,12 +89,12 @@ public class UpdateUserService {
 
         String token = UUID.randomUUID().toString();
 
-        emailService.sendVerificationEmail(newEmail, token);
-
         user.setEmailVerificationToken(token);
-        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusMinutes(10));
+        user.setEmailVerificationExpiresIn(LocalDateTime.now().plusHours(1));
 
         user.setNewEmail(newEmail);
+
+        userChangedEmailEventProducer.publishUserChangedEmail(new UserChangedEmailEvent(newEmail, token));
 
     }
 

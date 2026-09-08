@@ -16,12 +16,14 @@ public class RabbitConfig {
     public static final String USER_REGISTERED_QUEUE = "user.registered.queue";
     public static final String USER_CHANGED_PASSWORD_QUEUE = "user.changed.password.queue";
     public static final String ACCOUNT_CHANGED_PASSWORD_QUEUE = "account.changed.password.queue";
+    public static final String USER_CHANGED_EMAIL_QUEUE = "user.changed.email.queue";
     public static final String USER_REGISTERED_DLQ = "user.registered.dlq";
 
-    public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
-    public static final String USER_CHANGED_PASSWORD_ROUTING_KEY = "user.changed.password";
-    public static final String ACCOUNT_CHANGED_PASSWORD_ROUTING_KEY = "account.changed.password";
-    public static final String USER_REGISTERED_DLQ_ROUTING_KEY = "user.registered.dlq";
+    public static final String USER_REGISTERED_ROUTING_KEY = "user.registered.routingkey";
+    public static final String USER_CHANGED_PASSWORD_ROUTING_KEY = "user.changed.password.routingkey";
+    public static final String ACCOUNT_CHANGED_PASSWORD_ROUTING_KEY = "account.changed.password.routingkey";
+    public static final String USER_CHANGED_EMAIL_ROUTING_KEY = "user.changed.email.routingkey";
+    public static final String USER_REGISTERED_DLQ_ROUTING_KEY = "user.registered.dlq.routingkey";
 
 
     @Bean
@@ -43,6 +45,12 @@ public class RabbitConfig {
     @Bean
     public Queue accountChangedPasswordQueue() {
         return new Queue(ACCOUNT_CHANGED_PASSWORD_QUEUE, true);
+    }
+
+
+    @Bean
+    public Queue userChangedEmailQueue() {
+        return new Queue(USER_CHANGED_EMAIL_QUEUE, true);
     }
 
 
@@ -84,6 +92,15 @@ public class RabbitConfig {
                 .bind(accountChangedPasswordQueue)
                 .to(exchange)
                 .with(ACCOUNT_CHANGED_PASSWORD_ROUTING_KEY);
+    }
+
+
+    @Bean
+    public Binding userChangedEmailBinding(Queue userChangedEmailQueue, DirectExchange exchange) {
+        return BindingBuilder
+                .bind(userChangedEmailQueue)
+                .to(exchange)
+                .with(USER_CHANGED_EMAIL_ROUTING_KEY);
     }
 
 

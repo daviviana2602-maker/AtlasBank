@@ -4,7 +4,7 @@ import org.atlas.auth.dto.response.CreateAccountResponse;
 import org.atlas.common.messaging.event.UserRegisteredEvent;
 import org.atlas.common.exception.BadRequestException;
 import org.atlas.common.exception.ConflictException;
-import org.atlas.common.messaging.producer.UserEventProducer;
+import org.atlas.common.messaging.producer.UserRegisteredEventProducer;
 import org.atlas.user.UserEntity;
 import org.atlas.user.UserRepository;
 import org.atlas.user.enums.UserRoleEnum;
@@ -12,9 +12,6 @@ import org.atlas.user.enums.UserStatusEnum;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.atlas.common.normalize.StringNormalize.*;
 
@@ -25,17 +22,17 @@ public class CreateAccountService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserEventProducer userEventProducer;
+    private final UserRegisteredEventProducer userRegisteredEventProducer;
 
 
     public CreateAccountService(UserRepository userRepository,
                                 PasswordEncoder passwordEncoder,
-                                UserEventProducer userEventProducer
+                                UserRegisteredEventProducer userRegisteredEventProducer
     )
     {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.userEventProducer = userEventProducer;
+        this.userRegisteredEventProducer = userRegisteredEventProducer;
     }
 
 
@@ -101,7 +98,7 @@ public class CreateAccountService {
         }
 
 
-        userEventProducer.publishUserRegistered(new UserRegisteredEvent(user.getId(), email));
+        userRegisteredEventProducer.publishUserRegistered(new UserRegisteredEvent(user.getId(), email));
 
 
         return new CreateAccountResponse(
