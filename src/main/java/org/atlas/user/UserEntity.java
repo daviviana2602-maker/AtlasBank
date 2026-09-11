@@ -64,6 +64,9 @@ public class UserEntity {
     @Column
     private LocalDateTime emailVerificationExpiresIn;
 
+    @Column(name = "email_sent", nullable = false)
+    private boolean emailSent;
+
     @Column
     @CreationTimestamp
     private LocalDateTime createdAt;

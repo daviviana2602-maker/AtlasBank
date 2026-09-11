@@ -12,6 +12,7 @@ spring:
           enabled: true
           max-attempts: ${MAX_ATTEMPTS}
           initial-interval: ${INITIAL_INTERVAL}
+          max-interval: ${INITIAL_INTERVAL}
           multiplier: 1
 
 jwt:

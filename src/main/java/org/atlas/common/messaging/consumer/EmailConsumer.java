@@ -44,8 +44,8 @@ public class EmailConsumer {
         String token;
 
         if (user.getEmailVerificationToken() == null
-            || user.getEmailVerificationExpiresIn() == null
-            || user.getEmailVerificationExpiresIn().isBefore(LocalDateTime.now())) {
+                || user.getEmailVerificationExpiresIn() == null
+                || user.getEmailVerificationExpiresIn().isBefore(LocalDateTime.now())) {
 
             token = UUID.randomUUID().toString();
 
@@ -63,6 +63,9 @@ public class EmailConsumer {
                 event.getEmail(),
                 token
         );
+
+        user.setEmailSent(true);
+        userRepository.save(user);
 
     }
 
